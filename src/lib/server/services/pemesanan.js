@@ -154,8 +154,59 @@ export async function kirimBuktiKeLoket({ id_pesan, id_member, no_rek, tgl_trans
 }
 
 /**
- * Backward compatibility: konfirmasiPembayaran lama
+ * Operator mengubah status pesanan.
+ * Aturan utama:
+ * 1. Hanya boleh dari status 'Dalam Proses'.
+ * 2. Target status hanya 'Lunas' atau 'Belum Bayar'.
+ * 3. Jika target 'Lunas', cukup ubah status.
+ * 4. Jika target 'Belum Bayar', ubah status dan hapus konfirmasi_pesan (dalam 1 transaksi).
+ *
+ * @param {{ id_pesan: number, newStatus: 'Lunas' | 'Belum Bayar' }} param0
  */
-export async function konfirmasiPembayaran(params) {
-	return kirimBuktiKeLoket(params);
+export async function operatorUbahStatus({ id_pesan, newStatus }) {
+	if (newStatus !== 'Lunas' && newStatus !== 'Belum Bayar') {
+		const err = new Error('Status baru harus "Lunas" atau "Belum Bayar"');
+		err.status = 400;
+		throw err;
+	}
+
+	const conn = await pool.getConnection();
+	try {
+		await conn.beginTransaction();
+
+		const [rows] = await conn.query(
+			'SELECT id_pesan, status FROM pesan WHERE id_pesan = ? FOR UPDATE',
+			[id_pesan]
+		);
+		const pesan = rows[0];
+
+		if (!pesan) {
+			const err = new Error('Pesanan tidak ditemukan');
+			err.status = 404;
+			throw err;
+		}
+
+		// Operator hanya bisa mengubah dari status 'Dalam Proses'
+		if (pesan.status !== 'Dalam Proses') {
+			const err = new Error(`Perubahan status ditolak: operator hanya dapat mengubah pesanan dari status Dalam Proses (status saat ini: ${pesan.status})`);
+			err.status = 409;
+			throw err;
+		}
+
+		if (newStatus === 'Lunas') {
+			await conn.query('UPDATE pesan SET status = ? WHERE id_pesan = ?', ['Lunas', id_pesan]);
+		} else if (newStatus === 'Belum Bayar') {
+			// Hapus bukti transfer milik pesanan ini agar member bisa kirim ulang
+			await conn.query('DELETE FROM konfirmasi_pesan WHERE id_pesan = ?', [id_pesan]);
+			await conn.query('UPDATE pesan SET status = ? WHERE id_pesan = ?', ['Belum Bayar', id_pesan]);
+		}
+
+		await conn.commit();
+		return { id_pesan, status: newStatus };
+	} catch (err) {
+		await conn.rollback();
+		throw err;
+	} finally {
+		conn.release();
+	}
 }
