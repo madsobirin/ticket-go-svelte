@@ -19,6 +19,7 @@
 			<nav class="nav">
 				<a href="/member">Cari Jadwal</a>
 				<a href="/member/pesanan">Pesanan Saya</a>
+				<a href="/member/keluhan">Keluhan</a>
 				<button class="logout-btn" onclick={logout}>Keluar</button>
 			</nav>
 		</div>
