@@ -153,6 +153,9 @@ export async function kirimBuktiKeLoket({ id_pesan, id_member, no_rek, tgl_trans
 	}
 }
 
+// Alias kompatibilitas
+export const konfirmasiPembayaran = kirimBuktiKeLoket;
+
 /**
  * Operator mengubah status pesanan.
  * Aturan utama:
