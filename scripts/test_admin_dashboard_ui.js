@@ -3,7 +3,7 @@ import assert from 'node:assert';
 const BASE_URL = 'http://127.0.0.1:5173';
 
 async function testAdminDashboardUI() {
-	console.log('=== TEST ADMIN OPERATIONAL DASHBOARD UI ===');
+	console.log('=== TEST ADMIN OPERATIONAL DASHBOARD UI (STRICT USE CASE ALIGNMENT) ===');
 
 	// 1. Login as Admin
 	const loginRes = await fetch(`${BASE_URL}/api/auth/login`, {
@@ -24,31 +24,27 @@ async function testAdminDashboardUI() {
 	assert.strictEqual(pageRes.status, 200, 'GET /admin harus status 200');
 	const html = await pageRes.text();
 
-	// 3. Assert UI components matching Stitch mockup
-	assert.ok(html.includes('Shift Pagi: 06:00 - 14:00 WIB'), 'Harus ada badge shift');
-	assert.ok(html.includes('Terminal Rajabasa • Gate Sentral A1'), 'Harus ada gate terminal sentral');
-	assert.ok(html.includes('Selamat Pagi'), 'Harus ada greeting selamat pagi');
-	assert.ok(html.includes('Export Manifest'), 'Harus ada tombol Export Manifest');
-	assert.ok(html.includes('Shift Aktif: Loket 1'), 'Harus ada status shift loket 1');
-	assert.ok(html.includes('Input Tiket Loket (Walk-in)'), 'Harus ada tombol input walk-in');
+	// 3. Verifikasi 5 Use Case Bento Cards & Sections
+	assert.ok(html.includes('Data Member'), 'Harus ada metrik Data Member (Use Case 1)');
+	assert.ok(html.includes('Jadwal &amp; Rute') || html.includes('Jadwal & Rute'), 'Harus ada metrik Jadwal & Rute (Use Case 2)');
+	assert.ok(html.includes('Kota Master'), 'Harus ada metrik Kota Asal & Tujuan (Use Case 3)');
+	assert.ok(html.includes('Kendaraan'), 'Harus ada metrik Kendaraan Armada (Use Case 4)');
+	assert.ok(html.includes('Keluhan Saran'), 'Harus ada metrik Keluhan Pelanggan (Use Case 5)');
 
-	// 4. Assert 4 Bento Metrics Cards
-	assert.ok(html.includes('Total Penumpang Hari Ini'), 'Harus ada Card Total Penumpang');
-	assert.ok(html.includes('Menunggu Verifikasi'), 'Harus ada Card Menunggu Verifikasi');
-	assert.ok(html.includes('Armada Aktif Tol'), 'Harus ada Card Armada Aktif Tol');
-	assert.ok(html.includes('Pendapatan Bruto Hari Ini'), 'Harus ada Card Pendapatan Bruto');
+	// 4. Verifikasi Navigasi Sidebar dan Pintasan 5 Use Case
+	assert.ok(html.includes('/admin/member'), 'Harus ada link ke /admin/member');
+	assert.ok(html.includes('/admin/jadwal'), 'Harus ada link ke /admin/jadwal');
+	assert.ok(html.includes('/admin/kota'), 'Harus ada link ke /admin/kota');
+	assert.ok(html.includes('/admin/kendaraan'), 'Harus ada link ke /admin/kendaraan');
+	assert.ok(html.includes('/admin/keluhan'), 'Harus ada link ke /admin/keluhan');
 
-	// 5. Assert Verification Queue & Table
-	assert.ok(html.includes('Antrean Verifikasi Bukti Pembayaran'), 'Harus ada seksi antrean verifikasi');
-	assert.ok(html.includes('Jadwal Keberangkatan Armada Terdekat'), 'Harus ada tabel armada terdekat');
+	// 5. Verifikasi FITUR NON-ADMIN TELAH DIHAPUS
+	assert.ok(!html.includes('Antrean Verifikasi Bukti Pembayaran'), 'Antrean verifikasi loket harus DIHAPUS dari admin');
+	assert.ok(!html.includes('Meja Loket Fisik'), 'Widget meja loket fisik harus DIHAPUS dari admin');
+	assert.ok(!html.includes('Input Tiket Loket (Walk-in)'), 'Tombol walk-in ticketing loket harus DIHAPUS dari admin');
+	assert.ok(!html.includes('href="/operator"'), 'Link ke /operator di sidebar harus DIHAPUS dari admin');
 
-	// 6. Assert Right Widgets
-	assert.ok(html.includes('Meja Loket Fisik'), 'Harus ada widget Meja Loket Fisik');
-	assert.ok(html.includes('Kondisi Lintasan Tol'), 'Harus ada widget Kondisi Lintasan Tol');
-	assert.ok(html.includes('Tol Natar - Bakauheni'), 'Harus ada lintasan Tol Natar - Bakauheni');
-	assert.ok(html.includes('Pintasan Cepat Admin'), 'Harus ada Pintasan Cepat Admin');
-
-	console.log('[PASS] Semua elemen UI Dashboard Operasional Admin tervalidasi!');
+	console.log('[PASS] Dashboard Admin bersih dan selaras 100% dengan 5 Use Case Admin!');
 }
 
 testAdminDashboardUI().catch((err) => {

@@ -7,12 +7,12 @@ export async function load({ locals }) {
 		throw redirect(302, '/login');
 	}
 
-	const [[{ pendingCount }]] = await pool.query(
-		"SELECT COUNT(*) as pendingCount FROM pesan WHERE status = 'Dalam Proses'"
+	const [[{ keluhanCount }]] = await pool.query(
+		'SELECT COUNT(*) as keluhanCount FROM keluhan'
 	);
 
 	return {
 		user: locals.user,
-		pendingCount
+		keluhanCount
 	};
 }
