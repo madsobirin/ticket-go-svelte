@@ -6,7 +6,16 @@ import { pool } from '$lib/server/db';
  * @returns {Promise<{ id_member: number, username: string, password: string } | null>}
  */
 export async function findMemberByUsername(username) {
-	const [rows] = await pool.query('SELECT id_member, username, password FROM member WHERE username = ?', [username]);
+	const [rows] = await pool.query('SELECT id_member, nama, username, password FROM member WHERE username = ?', [username]);
+	return rows[0] ?? null;
+}
+
+/**
+ * Cari member berdasarkan ID.
+ * @param {number} id
+ */
+export async function findMemberById(id) {
+	const [rows] = await pool.query('SELECT id_member, nama, alamat, telepon, jen_kelamin, username FROM member WHERE id_member = ?', [id]);
 	return rows[0] ?? null;
 }
 
