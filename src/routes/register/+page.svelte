@@ -170,7 +170,6 @@
 					<div class="field-group">
 						<div class="label-row">
 							<label for="telepon" class="field-label">Nomor Telepon</label>
-							<span class="hint-badge">WhatsApp aktif</span>
 						</div>
 						<div class="input-wrapper">
 							<span class="input-icon">
