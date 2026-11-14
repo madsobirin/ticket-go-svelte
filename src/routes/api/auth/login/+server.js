@@ -63,46 +63,51 @@ export async function POST({ request, ...event }) {
 	// Jika ada konflik, admin akan selalu menang karena diperiksa lebih dulu.
 	// ----------------------------------------------------------------
 
-	// 1. Cek tabel admin (kolom: email)
-	const admin = await findAdminByEmail(identifier);
-	if (admin) {
-		const valid = await verifyPassword(password, admin.password, (hashed) =>
-			updateAdminPassword(admin.id_admin, hashed)
-		);
-		if (!valid) {
-			return json({ error: { code: 'INVALID_CREDENTIALS', message: 'Identifier atau password salah' } }, { status: 401 });
+	try {
+		// 1. Cek tabel admin (kolom: email)
+		const admin = await findAdminByEmail(identifier);
+		if (admin) {
+			const valid = await verifyPassword(password, admin.password, (hashed) =>
+				updateAdminPassword(admin.id_admin, hashed)
+			);
+			if (!valid) {
+				return json({ error: { code: 'INVALID_CREDENTIALS', message: 'Identifier atau password salah' } }, { status: 401 });
+			}
+			setSession(eventFull, { role: 'admin', id: admin.id_admin });
+			return json({ data: { role: 'admin', redirect: '/admin' } });
 		}
-		setSession(eventFull, { role: 'admin', id: admin.id_admin });
-		return json({ data: { role: 'admin', redirect: '/admin' } });
-	}
 
-	// 2. Cek tabel operator_loket (kolom: user)
-	const operator = await findOperatorByUser(identifier);
-	if (operator) {
-		const valid = await verifyPassword(password, operator.password, (hashed) =>
-			updateOperatorPassword(operator.id_opr, hashed)
-		);
-		if (!valid) {
-			return json({ error: { code: 'INVALID_CREDENTIALS', message: 'Identifier atau password salah' } }, { status: 401 });
+		// 2. Cek tabel operator_loket (kolom: user)
+		const operator = await findOperatorByUser(identifier);
+		if (operator) {
+			const valid = await verifyPassword(password, operator.password, (hashed) =>
+				updateOperatorPassword(operator.id_opr, hashed)
+			);
+			if (!valid) {
+				return json({ error: { code: 'INVALID_CREDENTIALS', message: 'Identifier atau password salah' } }, { status: 401 });
+			}
+			setSession(eventFull, { role: 'operator', id: operator.id_opr });
+			return json({ data: { role: 'operator', redirect: '/operator' } });
 		}
-		setSession(eventFull, { role: 'operator', id: operator.id_opr });
-		return json({ data: { role: 'operator', redirect: '/operator' } });
-	}
 
-	// 3. Cek tabel member (kolom: username)
-	const member = await findMemberByUsername(identifier);
-	if (member) {
-		// Upgrade hash member kini aman: kolom sudah varchar(255)
-		const valid = await verifyPassword(password, member.password, (hashed) =>
-			updateMemberPassword(member.id_member, hashed)
-		);
-		if (!valid) {
-			return json({ error: { code: 'INVALID_CREDENTIALS', message: 'Identifier atau password salah' } }, { status: 401 });
+		// 3. Cek tabel member (kolom: username)
+		const member = await findMemberByUsername(identifier);
+		if (member) {
+			// Upgrade hash member kini aman: kolom sudah varchar(255)
+			const valid = await verifyPassword(password, member.password, (hashed) =>
+				updateMemberPassword(member.id_member, hashed)
+			);
+			if (!valid) {
+				return json({ error: { code: 'INVALID_CREDENTIALS', message: 'Identifier atau password salah' } }, { status: 401 });
+			}
+			setSession(eventFull, { role: 'member', id: member.id_member });
+			return json({ data: { role: 'member', redirect: '/member' } });
 		}
-		setSession(eventFull, { role: 'member', id: member.id_member });
-		return json({ data: { role: 'member', redirect: '/member' } });
-	}
 
-	// Tidak ditemukan di tabel manapun
-	return json({ error: { code: 'INVALID_CREDENTIALS', message: 'Identifier atau password salah' } }, { status: 401 });
+		// Tidak ditemukan di tabel manapun
+		return json({ error: { code: 'INVALID_CREDENTIALS', message: 'Identifier atau password salah' } }, { status: 401 });
+	} catch (err) {
+		console.error('Login error:', err);
+		return json({ error: { code: 'DATABASE_ERROR', message: `Database error: ${err.message}` } }, { status: 500 });
+	}
 }

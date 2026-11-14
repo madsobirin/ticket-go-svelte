@@ -21,13 +21,12 @@ export async function GET(event) {
 			j.id_mobil,
 			k.jenis_mobil,
 			k.nomor_polisi,
-			COUNT(p.id_pesan) as kursi_terisi,
-			GREATEST(0, 8 - COUNT(p.id_pesan)) as sisa_kursi
+			(SELECT COUNT(*) FROM pesan p WHERE p.id_jadwal = j.id_jadwal) as kursi_terisi,
+			GREATEST(0, 8 - (SELECT COUNT(*) FROM pesan p WHERE p.id_jadwal = j.id_jadwal)) as sisa_kursi
 		FROM jadwal j
 		LEFT JOIN kota_asal ka ON j.id_kota_asal = ka.id_kota_asal
 		LEFT JOIN kota_tujuan kt ON j.id_kota_tujuan = kt.id_kota_tujuan
 		LEFT JOIN kendaraan k ON j.id_mobil = k.id_mobil
-		LEFT JOIN pesan p ON j.id_jadwal = p.id_jadwal
 		WHERE CONCAT(j.tgl_berangkat, ' ', j.jam_berangkat) >= NOW()
 	`;
 	const params = [];
@@ -45,8 +44,13 @@ export async function GET(event) {
 		params.push(tanggal);
 	}
 
-	query += ' GROUP BY j.id_jadwal ORDER BY j.tgl_berangkat ASC, j.jam_berangkat ASC';
+	query += ' ORDER BY j.tgl_berangkat ASC, j.jam_berangkat ASC';
 
-	const [rows] = await pool.query(query, params);
-	return json({ data: rows });
+	try {
+		const [rows] = await pool.query(query, params);
+		return json({ data: rows });
+	} catch (err) {
+		console.error('API member jadwal error:', err);
+		return json({ error: { code: 'DATABASE_ERROR', message: `Database error: ${err.message}` } }, { status: 500 });
+	}
 }

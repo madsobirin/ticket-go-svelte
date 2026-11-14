@@ -35,7 +35,7 @@
 			const data = await res.json();
 
 			if (!res.ok) {
-				errorMsg = data?.error?.message ?? 'Email/Username atau kata sandi tidak valid';
+				errorMsg = data?.error?.message ?? data?.message ?? 'Email/Username atau kata sandi tidak valid';
 				return;
 			}
 
