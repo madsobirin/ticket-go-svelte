@@ -17,8 +17,19 @@
 	let errorMsg = $state('');
 	let prefersReducedMotion = $state(false);
 
+	let showLoginModal = $state(false);
+	let pendingJadwalId = $state(null);
+
 	const todayDate = new Date().toISOString().split('T')[0];
 	const userName = $derived(data?.user?.nama || data?.user?.name || 'Member');
+
+	function handlePilihKursi(e, idJadwal) {
+		if (!data?.user) {
+			e.preventDefault();
+			pendingJadwalId = idJadwal;
+			showLoginModal = true;
+		}
+	}
 
 	onMount(() => {
 		const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -224,6 +235,52 @@
 			Pilih rute antarkota dan tanggal perjalanan Anda dengan armada nyaman Ticket Go.
 		</p>
 	</div>
+
+	<!-- Guest Mode Warning Banner -->
+	{#if !data?.user}
+		<div
+			class="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs text-amber-950"
+			transition:fade={{ duration: 150 }}
+		>
+			<div class="flex items-center gap-3">
+				<div
+					class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs"
+				>
+					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+						/>
+					</svg>
+				</div>
+				<div>
+					<p class="text-xs sm:text-sm font-bold">Mode Tamu — Perlu Masuk Akun untuk Memesan Tiket</p>
+					<p class="text-[11px] sm:text-xs text-amber-800">
+						Anda dapat mencari rute dan memeriksa ketersediaan kursi. Silakan masuk akun terlebih dahulu agar dapat memilih kursi &amp; melakukan pemesanan.
+					</p>
+				</div>
+			</div>
+			<div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+				<a
+					href="/login"
+					class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold transition shadow-xs hover:scale-102 active:scale-95"
+				>
+					<span>Masuk Akun</span>
+					<svg class="w-3.5 h-3.5 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+					</svg>
+				</a>
+				<a
+					href="/register"
+					class="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-amber-300 bg-white hover:bg-amber-100/50 text-amber-900 text-xs font-semibold transition"
+				>
+					Daftar
+				</a>
+			</div>
+		</div>
+	{/if}
 
 	<!-- Search Filter Card -->
 	<div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
@@ -525,7 +582,7 @@
 							</div>
 
 							<div>
-								{#if (item.sisa_kursi ?? 5) <= 2}
+								{#if (item.sisa_kursi ?? 8) <= 2}
 									<span class="inline-flex items-center gap-1 text-rose-600 font-semibold text-xs">
 										<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
 											<path
@@ -534,7 +591,7 @@
 												clip-rule="evenodd"
 											/>
 										</svg>
-										Sisa {item.sisa_kursi ?? 5} dari 5 kursi
+										Sisa {item.sisa_kursi ?? 8} dari 8 kursi
 									</span>
 								{:else}
 									<span class="inline-flex items-center gap-1 text-purple-700 font-medium text-xs">
@@ -549,7 +606,7 @@
 												d="M4 18v3M20 18v3M5 14h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v5a2 2 0 002 2zM6 14v4M18 14v4"
 											/>
 										</svg>
-										Tersedia {item.sisa_kursi ?? 5} dari 5 kursi
+										Tersedia {item.sisa_kursi ?? 8} dari 8 kursi
 									</span>
 								{/if}
 							</div>
@@ -565,6 +622,7 @@
 
 						<a
 							href={`/member/jadwal/${item.id_jadwal}`}
+							onclick={(e) => handlePilihKursi(e, item.id_jadwal)}
 							class="inline-flex items-center gap-2 bg-slate-900 hover:bg-black text-white px-4 py-2.5 rounded-full text-xs font-semibold transition hover:scale-105 active:scale-95 shadow-xs"
 						>
 							<span>Pilih Kursi</span>
@@ -683,4 +741,72 @@
 			</svg>
 		</a>
 	</div>
+
+	<!-- Login Required Warning Modal -->
+	{#if showLoginModal}
+		<div
+			class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-xs"
+			transition:fade={{ duration: 150 }}
+		>
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div
+				class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full p-6 text-center space-y-4 relative"
+				transition:fly={{ y: 20, duration: 200 }}
+			>
+				<button
+					type="button"
+					onclick={() => (showLoginModal = false)}
+					class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition"
+					aria-label="Tutup dialog"
+				>
+					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
+
+				<div class="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 mx-auto flex items-center justify-center shadow-inner">
+					<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+						/>
+					</svg>
+				</div>
+
+				<div class="space-y-1.5">
+					<h3 class="text-lg font-bold text-slate-900 tracking-tight">Perlu Masuk Akun untuk Memesan</h3>
+					<p class="text-xs text-slate-500 leading-relaxed px-2">
+						Untuk memilih kursi dan memesan tiket rute ini, Anda harus masuk ke akun Member terlebih dahulu agar manifes tiket diterbitkan resmi atas nama Anda.
+					</p>
+				</div>
+
+				<div class="flex flex-col sm:flex-row gap-2 pt-2">
+					<a
+						href={`/login?redirect=${encodeURIComponent(`/member/jadwal/${pendingJadwalId}`)}&login_required=1`}
+						class="flex-1 inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-black text-white font-bold py-2.5 px-4 rounded-xl text-xs transition shadow-xs hover:scale-[1.01] active:scale-[0.99]"
+					>
+						<span>Masuk / Login Sekarang</span>
+						<svg class="w-3.5 h-3.5 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+						</svg>
+					</a>
+					<button
+						type="button"
+						onclick={() => (showLoginModal = false)}
+						class="py-2.5 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition"
+					>
+						Nanti Saja
+					</button>
+				</div>
+
+				<div class="text-[11px] text-slate-400 pt-1">
+					<span>Belum punya akun?</span>
+					<a href="/register" class="text-purple-600 font-bold hover:underline ml-1">Daftar Member Baru</a>
+				</div>
+			</div>
+		</div>
+	{/if}
 </div>

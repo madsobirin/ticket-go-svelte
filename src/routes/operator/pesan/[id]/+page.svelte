@@ -2,11 +2,7 @@
 	import { invalidateAll } from '$app/navigation';
 
 	let { data } = $props();
-	let order = $state(data.order);
-
-	$effect(() => {
-		order = data.order;
-	});
+	let order = $derived(data.order);
 
 	let submitting = $state(false);
 	let actionType = $state(''); // 'Lunas' | 'Belum Bayar'

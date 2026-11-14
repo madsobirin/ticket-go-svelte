@@ -5,7 +5,8 @@
 	let { data } = $props();
 
 	// Bank state
-	let selectedBank = $state(data.banks[0]);
+	let selectedBankIndex = $state(0);
+	let selectedBank = $derived(data.banks[selectedBankIndex] || data.banks[0]);
 	let copied = $state(false);
 
 	// Modal state
@@ -19,7 +20,8 @@
 	let toastType = $state('error');
 
 	function selectBank(bank) {
-		selectedBank = bank;
+		const idx = data.banks.indexOf(bank);
+		if (idx !== -1) selectedBankIndex = idx;
 	}
 
 	function copyAccount() {

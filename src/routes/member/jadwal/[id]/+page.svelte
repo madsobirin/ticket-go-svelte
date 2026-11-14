@@ -19,7 +19,7 @@
 		animatedPrice.set(selectedSeats.length * data.jadwal.harga);
 	});
 
-	const sisaKursi = $derived(Math.max(0, 5 - data.bookedSeats.length));
+	const sisaKursi = $derived(Math.max(0, 8 - data.bookedSeats.length));
 
 	function toggleSeat(seatNum) {
 		if (data.bookedSeats.includes(seatNum)) return;
@@ -27,8 +27,8 @@
 		if (selectedSeats.includes(seatNum)) {
 			selectedSeats = selectedSeats.filter((s) => s !== seatNum);
 		} else {
-			if (selectedSeats.length >= 5) {
-				toastMsg = 'Maksimal 5 kursi per pemesanan';
+			if (selectedSeats.length >= 8) {
+				toastMsg = 'Maksimal 8 kursi per pemesanan';
 				toastType = 'error';
 				return;
 			}
@@ -109,13 +109,13 @@
 {#snippet seatBox(num, sublabel)}
 	{@const isTaken = data.bookedSeats.includes(num)}
 	{@const isSelected = selectedSeats.includes(num)}
-	<div class="flex flex-col items-center justify-center">
+	<div class="flex flex-col items-center justify-center w-full min-w-0">
 		<button
 			type="button"
 			disabled={isTaken}
 			aria-pressed={isSelected}
 			onclick={() => toggleSeat(num)}
-			class={`w-20 h-22 rounded-2xl flex flex-col items-center justify-center p-2 transition-all ${
+			class={`w-full max-w-[80px] h-21 sm:h-22 rounded-2xl flex flex-col items-center justify-center p-1.5 sm:p-2 transition-all ${
 				isTaken
 					? 'bg-slate-200/70 border border-slate-300 text-slate-400 cursor-not-allowed'
 					: isSelected
@@ -160,7 +160,7 @@
 				<span class="text-[10px] font-bold text-purple-600 mt-1">Tersedia</span>
 			{/if}
 		</button>
-		<span class="text-[11px] text-slate-500 mt-1.5 font-medium">{sublabel}</span>
+		<span class="text-[10px] sm:text-[11px] text-slate-500 mt-1 font-medium text-center truncate max-w-full">{sublabel}</span>
 	</div>
 {/snippet}
 
@@ -259,7 +259,7 @@
 					<span
 						class="text-[11px] font-mono font-semibold px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 uppercase"
 					>
-						{data.jadwal.jenis_mobil?.split(' ')[0] || 'AVANZA'} 6-SEAT
+						{data.jadwal.jenis_mobil?.split(' ')[0] || 'MINIBUS'} 8-SEAT
 					</span>
 				</div>
 
@@ -372,33 +372,58 @@
 									</div>
 								</div>
 
-								<!-- Pemisah Baris Tengah -->
-								<div class="flex items-center gap-3 my-5">
+								<!-- Pemisah Baris 2 -->
+								<div class="flex items-center gap-3 my-4">
 									<div class="h-px bg-slate-200 flex-1"></div>
 									<span
 										class="text-[10px] font-mono font-bold tracking-wider text-slate-400 uppercase"
 									>
-										Baris Tengah
+										Baris 2
 									</span>
 									<div class="h-px bg-slate-200 flex-1"></div>
 								</div>
 
-								<!-- Baris Tengah -->
+								<!-- Baris 2 -->
 								<div class="grid grid-cols-[1fr_24px_1fr] gap-2 items-center px-1">
 									<!-- Kiri -->
-									{@render seatBox(3, 'Tengah Kiri')}
+									{@render seatBox(2, 'Baris 2 Kiri')}
 
 									<!-- Jalur Tengah -->
 									<div class="flex items-center justify-center">
-										<div class="h-12 w-1 rounded-full bg-slate-200"></div>
+										<div class="h-10 w-1 rounded-full bg-slate-200"></div>
 									</div>
 
 									<!-- Kanan -->
-									{@render seatBox(2, 'Tengah Kanan')}
+									{@render seatBox(3, 'Baris 2 Kanan')}
 								</div>
 
-								<!-- Pemisah Baris Belakang -->
-								<div class="flex items-center gap-3 my-5">
+								<!-- Pemisah Baris 3 -->
+								<div class="flex items-center gap-3 my-4">
+									<div class="h-px bg-slate-200 flex-1"></div>
+									<span
+										class="text-[10px] font-mono font-bold tracking-wider text-slate-400 uppercase"
+									>
+										Baris 3
+									</span>
+									<div class="h-px bg-slate-200 flex-1"></div>
+								</div>
+
+								<!-- Baris 3 -->
+								<div class="grid grid-cols-[1fr_24px_1fr] gap-2 items-center px-1">
+									<!-- Kiri -->
+									{@render seatBox(4, 'Baris 3 Kiri')}
+
+									<!-- Jalur Tengah -->
+									<div class="flex items-center justify-center">
+										<div class="h-10 w-1 rounded-full bg-slate-200"></div>
+									</div>
+
+									<!-- Kanan -->
+									{@render seatBox(5, 'Baris 3 Kanan')}
+								</div>
+
+								<!-- Pemisah Baris Belakang (Baris 4) -->
+								<div class="flex items-center gap-3 my-4">
 									<div class="h-px bg-slate-200 flex-1"></div>
 									<span
 										class="text-[10px] font-mono font-bold tracking-wider text-slate-400 uppercase"
@@ -408,27 +433,11 @@
 									<div class="h-px bg-slate-200 flex-1"></div>
 								</div>
 
-								<!-- Baris Belakang -->
-								<div class="grid grid-cols-[1fr_24px_1fr] gap-2 items-center px-1">
-									<!-- Kiri -->
-									{@render seatBox(5, 'Belakang Kiri')}
-
-									<!-- Area Tengah -->
-									<div class="flex items-center justify-center">
-										<svg
-											class="w-5 h-5 text-slate-300"
-											viewBox="0 0 24 24"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="1.8"
-										>
-											<rect x="5" y="7" width="14" height="14" rx="2" />
-											<path d="M9 7V5a3 3 0 0 1 6 0v2" />
-										</svg>
-									</div>
-
-									<!-- Kanan -->
-									{@render seatBox(4, 'Belakang Kanan')}
+								<!-- Baris Belakang: 3 Kursi (Kursi 6, 7, 8) -->
+								<div class="grid grid-cols-3 gap-2 items-center px-1">
+									{@render seatBox(6, 'Belakang Kiri')}
+									{@render seatBox(7, 'Belakang Tengah')}
+									{@render seatBox(8, 'Belakang Kanan')}
 								</div>
 							</div>
 

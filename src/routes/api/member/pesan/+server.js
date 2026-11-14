@@ -6,8 +6,8 @@ import { pesanKursi } from '$lib/server/services/pemesanan';
 const schema = z.object({
 	id_jadwal: z.number().int().positive('ID jadwal harus valid'),
 	nomor_kursi: z.union([
-		z.number().int().min(1).max(5),
-		z.array(z.number().int().min(1).max(5)).min(1).max(5)
+		z.number().int().min(1).max(8),
+		z.array(z.number().int().min(1).max(8)).min(1).max(8)
 	])
 });
 

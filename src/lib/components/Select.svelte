@@ -11,7 +11,7 @@
 		...rest
 	} = $props();
 
-	const selectId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') + '-' + Math.random().toString(36).slice(2, 7) : undefined);
+	const selectId = $derived(id || (label ? label.toLowerCase().replace(/\s+/g, '-') + '-' + Math.random().toString(36).slice(2, 7) : undefined));
 </script>
 
 <div class="select-group">
