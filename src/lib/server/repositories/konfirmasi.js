@@ -32,13 +32,12 @@ export async function findKonfirmasiByResi(no_resi, conn = pool) {
  * @param {any} conn
  */
 export async function createKonfirmasi(data, conn = pool) {
-	// Kolom no_rek bertipe int di DB
-	const noRekInt = parseInt(String(data.no_rek).replace(/\D/g, ''), 10) || 0;
+	const noRekStr = String(data.no_rek ?? '').trim();
 
 	await conn.query(`
 		INSERT INTO konfirmasi_pesan (no_resi, no_rek, tgl_transfer, jam_transfer, id_pesan)
 		VALUES (?, ?, ?, ?, ?)
-	`, [data.no_resi, noRekInt, data.tgl_transfer, data.jam_transfer, data.id_pesan]);
+	`, [data.no_resi, noRekStr, data.tgl_transfer, data.jam_transfer, data.id_pesan]);
 
 	return true;
 }

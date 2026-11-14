@@ -6,7 +6,7 @@ export const banks = [
 		fullName: 'Bank Mandiri',
 		subtext: 'Transfer Antar-Bank / Virtual Account Loket',
 		accountNumber: '1140029381029',
-		accountHolder: 'PT TRANS LAMPUNG EXPRESS',
+		accountHolder: 'PT TICKET GO',
 		branch: 'Cab. Raden Intan, B. Lampung'
 	},
 	{
@@ -16,7 +16,7 @@ export const banks = [
 		fullName: 'Bank BRI',
 		subtext: 'Transfer Antar-Bank (ATM / BRIMO)',
 		accountNumber: '012301001234530',
-		accountHolder: 'PT TRANS LAMPUNG EXPRESS',
+		accountHolder: 'PT TICKET GO',
 		branch: 'Cab. Tanjung Karang'
 	},
 	{
@@ -26,7 +26,7 @@ export const banks = [
 		fullName: 'Bank Central Asia (BCA)',
 		subtext: 'Transfer Antar-Bank (KlikBCA / myBCA)',
 		accountNumber: '8105123456',
-		accountHolder: 'PT TRANS LAMPUNG EXPRESS',
+		accountHolder: 'PT TICKET GO',
 		branch: 'Cab. Teluk Betung'
 	},
 	{
@@ -36,7 +36,7 @@ export const banks = [
 		fullName: 'Bank BNI',
 		subtext: 'Transfer Antar-Bank (ATM / BNI Mobile)',
 		accountNumber: '0234567891',
-		accountHolder: 'PT TRANS LAMPUNG EXPRESS',
+		accountHolder: 'PT TICKET GO',
 		branch: 'Cab. Malahayati'
 	},
 	{
@@ -46,7 +46,7 @@ export const banks = [
 		fullName: 'Bank CIMB Niaga',
 		subtext: 'Transfer Antar-Bank (OCTO Mobile)',
 		accountNumber: '705123456789',
-		accountHolder: 'PT TRANS LAMPUNG EXPRESS',
+		accountHolder: 'PT TICKET GO',
 		branch: 'Cab. Kartini Lampung'
 	}
 ];

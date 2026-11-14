@@ -52,7 +52,7 @@ export async function DELETE(event) {
 
 	try {
 		await removeKendaraan(id);
-		return new Response(null, { status: 204 });
+		return json({ data: { message: 'Armada berhasil dihapus' } });
 	} catch (err) {
 		// Jika ada relasi ke jadwal
 		return json({ error: { code: 'CONFLICT', message: 'Kendaraan masih digunakan dalam jadwal' } }, { status: 409 });

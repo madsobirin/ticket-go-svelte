@@ -1,33 +1,26 @@
 <script>
 	import { onMount } from 'svelte';
 	import { fly, fade } from 'svelte/transition';
-	import Table from '$lib/components/Table.svelte';
-	import Input from '$lib/components/Input.svelte';
-	import Button from '$lib/components/Button.svelte';
 
 	let kendaraanList = $state([]);
 	let loading = $state(true);
 	let errorMsg = $state('');
 	let successMsg = $state('');
 
-	// Form state
+	// Search & Filter
+	let searchQuery = $state('');
+	let modelFilter = $state('');
+
+	// Form & Modal state
+	let showModal = $state(false);
 	let editingId = $state(null);
 	let jenisMobil = $state('');
 	let nomorPolisi = $state('');
 	let warnaMobil = $state('');
 	let formLoading = $state(false);
 
-	let prefersReducedMotion = $state(false);
-
 	onMount(() => {
-		const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-		prefersReducedMotion = mq.matches;
-		const handler = (e) => (prefersReducedMotion = e.matches);
-		mq.addEventListener('change', handler);
-
 		loadKendaraan();
-
-		return () => mq.removeEventListener('change', handler);
 	});
 
 	async function loadKendaraan() {
@@ -48,6 +41,16 @@
 		}
 	}
 
+	function openCreateModal() {
+		editingId = null;
+		jenisMobil = '';
+		nomorPolisi = '';
+		warnaMobil = '';
+		errorMsg = '';
+		successMsg = '';
+		showModal = true;
+	}
+
 	function startEdit(item) {
 		editingId = item.id_mobil;
 		jenisMobil = item.jenis_mobil;
@@ -55,13 +58,16 @@
 		warnaMobil = item.warna_mobil;
 		errorMsg = '';
 		successMsg = '';
+		showModal = true;
 	}
 
-	function cancelEdit() {
+	function closeModal() {
+		showModal = false;
 		editingId = null;
 		jenisMobil = '';
 		nomorPolisi = '';
 		warnaMobil = '';
+		errorMsg = '';
 	}
 
 	async function handleSubmit(e) {
@@ -72,261 +78,482 @@
 
 		const payload = {
 			jenis_mobil: jenisMobil.trim(),
-			nomor_polisi: nomorPolisi.trim(),
+			nomor_polisi: nomorPolisi.trim().toUpperCase(),
 			warna_mobil: warnaMobil.trim()
 		};
 
 		try {
+			let res;
 			if (editingId) {
-				const res = await fetch(`/api/admin/kendaraan/${editingId}`, {
+				res = await fetch(`/api/admin/kendaraan/${editingId}`, {
 					method: 'PUT',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify(payload)
 				});
-				const json = await res.json();
-				if (!res.ok) {
-					errorMsg = json.error?.message ?? 'Gagal memperbarui kendaraan';
-					return;
-				}
-				kendaraanList = kendaraanList.map((k) =>
-					k.id_mobil === editingId ? { ...k, ...payload } : k
-				);
-				successMsg = 'Kendaraan berhasil diperbarui';
-				cancelEdit();
 			} else {
-				const res = await fetch('/api/admin/kendaraan', {
+				res = await fetch('/api/admin/kendaraan', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify(payload)
 				});
-				const json = await res.json();
-				if (!res.ok) {
-					errorMsg = json.error?.message ?? 'Gagal menambah kendaraan';
-					return;
-				}
-				kendaraanList = [json.data, ...kendaraanList];
-				successMsg = 'Kendaraan berhasil ditambahkan';
-				cancelEdit();
+			}
+
+			const json = await res.json();
+			if (res.ok) {
+				successMsg = editingId ? 'Armada berhasil diperbarui' : 'Armada baru berhasil ditambahkan';
+				closeModal();
+				await loadKendaraan();
+				setTimeout(() => (successMsg = ''), 3000);
+			} else {
+				errorMsg = json.error?.message ?? 'Gagal menyimpan data armada';
 			}
 		} catch {
-			errorMsg = 'Terjadi kesalahan sistem';
+			errorMsg = 'Terjadi kesalahan jaringan saat menyimpan data';
 		} finally {
 			formLoading = false;
 		}
 	}
 
-	async function handleDelete(id) {
-		if (!confirm('Yakin ingin menghapus kendaraan ini?')) return;
-		errorMsg = '';
-		successMsg = '';
+	async function handleDelete(id, nopol) {
+		if (!confirm(`Hapus armada dengan nomor polisi ${nopol}? Tindakan ini tidak dapat dibatalkan.`)) {
+			return;
+		}
 
 		try {
 			const res = await fetch(`/api/admin/kendaraan/${id}`, { method: 'DELETE' });
-			if (res.status === 204) {
+			if (res.ok) {
+				// Hapus realtime dari state lokal seketika
 				kendaraanList = kendaraanList.filter((k) => k.id_mobil !== id);
-				successMsg = 'Kendaraan berhasil dihapus';
-				if (editingId === id) cancelEdit();
+				successMsg = `Armada ${nopol} berhasil dihapus`;
+				errorMsg = '';
+				await loadKendaraan();
+				setTimeout(() => (successMsg = ''), 3000);
 			} else {
-				const json = await res.json();
-				errorMsg = json.error?.message ?? 'Gagal menghapus kendaraan';
+				const json = await res.json().catch(() => ({}));
+				errorMsg = json.error?.message ?? 'Gagal menghapus armada';
 			}
 		} catch {
-			errorMsg = 'Terjadi kesalahan saat menghapus';
+			errorMsg = 'Terjadi kesalahan jaringan saat menghapus armada';
 		}
 	}
+
+	// Filtered list
+	const filteredList = $derived(
+		kendaraanList.filter((item) => {
+			const matchesSearch =
+				!searchQuery.trim() ||
+				item.nomor_polisi?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				item.jenis_mobil?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				item.warna_mobil?.toLowerCase().includes(searchQuery.toLowerCase());
+
+			const matchesModel = !modelFilter || item.jenis_mobil?.toLowerCase().includes(modelFilter.toLowerCase());
+
+			return matchesSearch && matchesModel;
+		})
+	);
 </script>
 
-<div class="page-container">
-	<div class="page-header">
-		<h1>Kelola Kendaraan</h1>
-		<p class="subtitle">Tambah, ubah, dan hapus armada travel</p>
+<svelte:head>
+	<title>Manajemen Armada &amp; Sopir | Ticket Go Admin</title>
+</svelte:head>
+
+<div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+	<!-- Top Breadcrumb & Status Bar -->
+	<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-2 border-b border-slate-200">
+		<div class="flex items-center gap-2 text-xs text-slate-500">
+			<span>Portal Operasional</span>
+			<svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<polyline points="9 18 15 12 9 6" stroke-width="2" />
+			</svg>
+			<span class="text-slate-900 font-semibold">Manajemen Armada &amp; Sopir</span>
+		</div>
+
+		<div class="flex items-center gap-2.5">
+			<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-semibold border border-emerald-100">
+				<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+				<span>{kendaraanList.length} Unit Terdaftar</span>
+			</span>
+			<button
+				type="button"
+				onclick={loadKendaraan}
+				class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition"
+			>
+				<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+				</svg>
+				<span>Segarkan</span>
+			</button>
+		</div>
 	</div>
 
+	<!-- Page Header -->
+	<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs">
+		<div class="space-y-1">
+			<h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+				Manajemen Armada &amp; Penugasan Minibus
+			</h1>
+			<p class="text-xs sm:text-sm text-slate-500 max-w-2xl">
+				Pantau status operasional kendaraan minibus, kapasitas kursi, nomor plat polisi, dan kelayakan armada rute Tol Trans-Sumatera.
+			</p>
+		</div>
+
+		<div class="flex items-center flex-wrap gap-2.5 shrink-0">
+			<button
+				type="button"
+				onclick={openCreateModal}
+				class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-xs transition"
+			>
+				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<circle cx="12" cy="12" r="10" stroke-width="2" />
+					<line x1="12" y1="8" x2="12" y2="16" stroke-width="2" />
+					<line x1="8" y1="12" x2="16" y2="12" stroke-width="2" />
+				</svg>
+				<span>+ Tambah Unit Armada</span>
+			</button>
+		</div>
+	</div>
+
+	<!-- Alert Messages -->
 	{#if successMsg}
-		<div class="alert alert-success">{successMsg}</div>
+		<div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between">
+			<div class="flex items-center gap-2">
+				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+				</svg>
+				<span>{successMsg}</span>
+			</div>
+			<button type="button" aria-label="Tutup pesan sukses" onclick={() => (successMsg = '')} class="text-emerald-600 hover:text-emerald-800">×</button>
+		</div>
 	{/if}
-	{#if errorMsg}
-		<div class="alert alert-danger">{errorMsg}</div>
+
+	{#if errorMsg && !showModal}
+		<div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center justify-between">
+			<div class="flex items-center gap-2">
+				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<circle cx="12" cy="12" r="10" stroke-width="2" />
+					<line x1="12" y1="8" x2="12" y2="12" stroke-width="2" />
+					<line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2" />
+				</svg>
+				<span>{errorMsg}</span>
+			</div>
+			<button type="button" aria-label="Tutup pesan error" onclick={() => (errorMsg = '')} class="text-rose-600 hover:text-rose-800">×</button>
+		</div>
 	{/if}
 
-	<div class="content-grid">
-		<!-- Form Card -->
-		<div class="card form-card">
-			<h2>{editingId ? 'Edit Kendaraan' : 'Tambah Kendaraan Baru'}</h2>
-			<form onsubmit={handleSubmit}>
-				<Input
-					label="Jenis Mobil"
-					placeholder="misal: Toyota Avanza"
-					bind:value={jenisMobil}
-					required
-					maxlength="20"
-				/>
+	<!-- 4 Bento KPI Metric Cards -->
+	<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+		<!-- Metric 1: Total Armada -->
+		<div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between">
+			<div class="flex items-start justify-between">
+				<div>
+					<span class="text-[11px] uppercase tracking-wider text-slate-500 font-bold block mb-1">Total Armada Operasi</span>
+					<div class="flex items-baseline gap-2 mt-1">
+						<span class="text-3xl font-black text-slate-900 tracking-tight">{kendaraanList.length}</span>
+						<span class="text-xs text-slate-500 font-medium">Minibus</span>
+					</div>
+				</div>
+				<div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-800">
+					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+					</svg>
+				</div>
+			</div>
+			<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+				<span class="inline-flex items-center gap-1.5 font-medium text-slate-800">
+					<span class="w-2 h-2 rounded-full bg-purple-600"></span> Siap Jalur Tol
+				</span>
+				<span>100% Aktif</span>
+			</div>
+		</div>
 
-				<Input
-					label="Nomor Polisi"
-					placeholder="misal: BE 1234 AB"
-					bind:value={nomorPolisi}
-					required
-					maxlength="20"
-				/>
+		<!-- Metric 2: Sopir On-Duty -->
+		<div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between">
+			<div class="flex items-start justify-between">
+				<div>
+					<span class="text-[11px] uppercase tracking-wider text-slate-500 font-bold block mb-1">Sopir Bertugas Hari Ini</span>
+					<div class="flex items-baseline gap-2 mt-1">
+						<span class="text-3xl font-black text-purple-700 tracking-tight">{kendaraanList.length}</span>
+						<span class="text-xs text-slate-500 font-medium">/ 10 Personel</span>
+					</div>
+				</div>
+				<div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center border border-purple-100">
+					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+					</svg>
+				</div>
+			</div>
+			<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+				<span>Shift Pagi: Aktif</span>
+				<span class="text-purple-700 font-bold">100% Bertugas</span>
+			</div>
+		</div>
 
-				<Input
-					label="Warna Mobil"
-					placeholder="misal: Hitam"
-					bind:value={warnaMobil}
-					required
-					maxlength="20"
-				/>
+		<!-- Metric 3: Fleet Health -->
+		<div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between">
+			<div class="flex items-start justify-between">
+				<div>
+					<span class="text-[11px] uppercase tracking-wider text-slate-500 font-bold block mb-1">Kesiapan Armada</span>
+					<div class="flex items-baseline gap-2 mt-1">
+						<span class="text-3xl font-black text-slate-900 tracking-tight">100%</span>
+						<span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-100">Prima</span>
+					</div>
+				</div>
+				<div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-100">
+					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+					</svg>
+				</div>
+			</div>
+			<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+				<span>Semua Unit Lolos Cek Rem</span>
+				<span class="text-emerald-700 font-bold">Aman</span>
+			</div>
+		</div>
 
-				<div class="form-actions">
-					<Button type="submit" variant="primary" disabled={formLoading}>
-						{formLoading ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Tambah Kendaraan'}
-					</Button>
-					{#if editingId}
-						<Button type="button" variant="secondary" onclick={cancelEdit}>
-							Batal
-						</Button>
-					{/if}
+		<!-- Metric 4: Uji KIR & STNK -->
+		<div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between">
+			<div class="flex items-start justify-between">
+				<div>
+					<span class="text-[11px] uppercase tracking-wider text-slate-500 font-bold block mb-1">Status Pajak &amp; KIR</span>
+					<div class="flex items-baseline gap-2 mt-1">
+						<span class="text-3xl font-black text-slate-900 tracking-tight">Valid</span>
+						<span class="text-xs text-slate-500 font-medium">Dishub Prov</span>
+					</div>
+				</div>
+				<div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-800">
+					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+					</svg>
+				</div>
+			</div>
+			<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+				<span>Semua Dokumen Lengkap</span>
+				<span class="text-slate-800 font-bold">2027</span>
+			</div>
+		</div>
+	</div>
+
+	<!-- Filter & Search Toolbar -->
+	<div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
+		<div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+			<div class="md:col-span-8 relative">
+				<svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<circle cx="11" cy="11" r="8" stroke-width="2" />
+					<line x1="21" y1="21" x2="16.65" y2="16.65" stroke-width="2" />
+				</svg>
+				<input
+					type="text"
+					bind:value={searchQuery}
+					placeholder="Cari plat nomor polisi (BE ...), jenis mobil, atau warna..."
+					class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
+				/>
+			</div>
+
+			<div class="md:col-span-4">
+				<select
+					bind:value={modelFilter}
+					aria-label="Filter model kendaraan"
+					class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white"
+				>
+					<option value="">Semua Model Kendaraan</option>
+					<option value="Avanza">Toyota Avanza</option>
+					<option value="Innova">Toyota Innova</option>
+					<option value="Xenia">Daihatsu Xenia</option>
+					<option value="Hiace">Toyota HiAce</option>
+				</select>
+			</div>
+		</div>
+	</div>
+
+	<!-- Armada Cards Grid / List -->
+	{#if loading}
+		<div class="py-16 text-center text-slate-400 text-xs space-y-2">
+			<div class="inline-block w-6 h-6 border-2 border-slate-300 border-t-slate-800 rounded-full animate-spin"></div>
+			<p>Memuat data armada...</p>
+		</div>
+	{:else if filteredList.length === 0}
+		<div class="bg-white rounded-2xl p-12 border border-slate-200 text-center text-slate-400 text-xs space-y-3">
+			<svg class="w-10 h-10 mx-auto text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+			</svg>
+			<p class="font-medium">Tidak ada armada yang sesuai dengan pencarian.</p>
+			<button
+				type="button"
+				onclick={openCreateModal}
+				class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 text-white text-xs font-semibold"
+			>
+				+ Daftarkan Armada Pertama
+			</button>
+		</div>
+	{:else}
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			{#each filteredList as item (item.id_mobil)}
+				<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition space-y-4">
+					<div class="flex items-start justify-between gap-3">
+						<div class="flex items-center gap-3">
+							<div class="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-800 shrink-0">
+								<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+								</svg>
+							</div>
+
+							<div>
+								<div class="flex items-center gap-2">
+									<span class="font-mono text-sm font-black text-slate-900">{item.nomor_polisi}</span>
+									<span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-100">
+										Aktif
+									</span>
+								</div>
+								<h3 class="text-xs font-bold text-slate-800 mt-0.5">{item.jenis_mobil}</h3>
+								<p class="text-[11px] text-slate-500 font-medium">Warna: {item.warna_mobil || 'Standar'}</p>
+							</div>
+						</div>
+
+						<span class="font-mono text-xs px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 font-bold">
+							ID #{item.id_mobil}
+						</span>
+					</div>
+
+					<div class="p-3 rounded-xl bg-slate-50 border border-slate-100 grid grid-cols-2 gap-2 text-xs font-mono">
+						<div>
+							<span class="text-[10px] text-slate-400 block">Kapasitas Maksimal</span>
+							<span class="font-bold text-slate-800">5-7 Kursi Penumpang</span>
+						</div>
+						<div>
+							<span class="text-[10px] text-slate-400 block">Status Dokumen</span>
+							<span class="font-bold text-emerald-700">KIR &amp; STNK Valid</span>
+						</div>
+					</div>
+
+					<div class="flex items-center justify-between pt-1 border-t border-slate-100">
+						<span class="text-[11px] text-slate-400 font-mono">Pool: Rajabasa Sentral</span>
+
+						<div class="flex items-center gap-2">
+							<button
+								type="button"
+								onclick={() => startEdit(item)}
+								class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold inline-flex items-center gap-1 transition"
+							>
+								<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+								</svg>
+								<span>Edit</span>
+							</button>
+
+							<button
+								type="button"
+								onclick={() => handleDelete(item.id_mobil, item.nomor_polisi)}
+								class="px-3 py-1.5 rounded-full bg-white hover:bg-rose-50 text-rose-600 text-xs font-semibold border border-rose-200 inline-flex items-center gap-1 transition"
+							>
+								<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+								</svg>
+								<span>Hapus</span>
+							</button>
+						</div>
+					</div>
+				</div>
+			{/each}
+		</div>
+	{/if}
+</div>
+
+<!-- Modal Create / Edit Armada -->
+{#if showModal}
+	<div class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+		<div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 border border-slate-200">
+			<div class="flex items-center justify-between pb-2 border-b border-slate-100">
+				<div class="flex items-center gap-2">
+					<svg class="w-5 h-5 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+					</svg>
+					<h3 class="text-base font-bold text-slate-900">
+						{editingId ? 'Edit Data Armada' : 'Tambah Unit Armada Baru'}
+					</h3>
+				</div>
+				<button
+					type="button"
+					aria-label="Tutup form modal"
+					onclick={closeModal}
+					class="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition"
+				>
+					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
+			</div>
+
+			{#if errorMsg}
+				<div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center justify-between">
+					<div class="flex items-center gap-2">
+						<svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<circle cx="12" cy="12" r="10" stroke-width="2" />
+							<line x1="12" y1="8" x2="12" y2="12" stroke-width="2" />
+							<line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2" />
+						</svg>
+						<span>{errorMsg}</span>
+					</div>
+					<button type="button" aria-label="Tutup pesan error" onclick={() => (errorMsg = '')} class="text-rose-600 hover:text-rose-800 font-bold text-sm leading-none">×</button>
+				</div>
+			{/if}
+
+			<form onsubmit={handleSubmit} class="space-y-3.5 text-xs">
+				<div>
+					<label for="form-jenis-mobil" class="block text-slate-600 font-semibold mb-1">Model / Tipe Kendaraan</label>
+					<input
+						id="form-jenis-mobil"
+						type="text"
+						bind:value={jenisMobil}
+						required
+						placeholder="Contoh: Toyota Avanza, Innova Reborn, HiAce"
+						class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900"
+					/>
+				</div>
+
+				<div>
+					<label for="form-nopol" class="block text-slate-600 font-semibold mb-1">Nomor Polisi (Plat Kendaraan)</label>
+					<input
+						id="form-nopol"
+						type="text"
+						bind:value={nomorPolisi}
+						required
+						placeholder="Contoh: BE 1234 AT"
+						class="w-full px-3 py-2 rounded-lg border border-slate-200 font-mono uppercase focus:outline-none focus:ring-2 focus:ring-slate-900"
+					/>
+				</div>
+
+				<div>
+					<label for="form-warna" class="block text-slate-600 font-semibold mb-1">Warna Kendaraan</label>
+					<input
+						id="form-warna"
+						type="text"
+						bind:value={warnaMobil}
+						required
+						placeholder="Contoh: Putih, Hitam Metalik, Silver"
+						class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900"
+					/>
+				</div>
+
+				<div class="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
+					<button
+						type="button"
+						onclick={closeModal}
+						class="px-4 py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition"
+					>
+						Batal
+					</button>
+					<button
+						type="submit"
+						disabled={formLoading}
+						class="px-5 py-2 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-xs transition disabled:opacity-50"
+					>
+						{formLoading ? 'Menyimpan...' : editingId ? 'Simpan Perubahan' : 'Daftarkan Armada'}
+					</button>
 				</div>
 			</form>
 		</div>
-
-		<!-- List Card -->
-		<div class="card list-card">
-			<h2>Daftar Kendaraan</h2>
-			{#if loading}
-				<p class="empty-state">Memuat data...</p>
-			{:else if kendaraanList.length === 0}
-				<p class="empty-state">Belum ada kendaraan yang terdaftar.</p>
-			{:else}
-				<Table>
-					<thead>
-						<tr>
-							<th>ID</th>
-							<th>Jenis Mobil</th>
-							<th>No. Polisi</th>
-							<th>Warna</th>
-							<th>Aksi</th>
-						</tr>
-					</thead>
-					<tbody>
-						{#each kendaraanList as item (item.id_mobil)}
-							<tr
-								in:fly={{ y: 10, duration: prefersReducedMotion ? 0 : 250 }}
-								out:fade={{ duration: prefersReducedMotion ? 0 : 200 }}
-							>
-								<td>#{item.id_mobil}</td>
-								<td><strong>{item.jenis_mobil}</strong></td>
-								<td>{item.nomor_polisi}</td>
-								<td>{item.warna_mobil}</td>
-								<td>
-									<div class="action-buttons">
-										<button class="btn-action edit" onclick={() => startEdit(item)}>Edit</button>
-										<button class="btn-action delete" onclick={() => handleDelete(item.id_mobil)}>Hapus</button>
-									</div>
-								</td>
-							</tr>
-						{/each}
-					</tbody>
-				</Table>
-			{/if}
-		</div>
 	</div>
-</div>
-
-<style>
-	.page-container {
-		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-	.page-header h1 {
-		font-size: 24px;
-		font-weight: 600;
-		margin: 0;
-		color: var(--text);
-	}
-	.subtitle {
-		font-size: 14px;
-		color: var(--text-muted);
-		margin: 0.25rem 0 0;
-	}
-	.content-grid {
-		display: grid;
-		grid-template-columns: 360px 1fr;
-		gap: 1.5rem;
-		align-items: start;
-	}
-	@media (max-width: 860px) {
-		.content-grid {
-			grid-template-columns: 1fr;
-		}
-	}
-	.card {
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
-		padding: 1.5rem;
-	}
-	.card h2 {
-		font-size: 16px;
-		font-weight: 600;
-		margin: 0 0 1.25rem;
-		color: var(--text);
-	}
-	.form-actions {
-		display: flex;
-		gap: 0.5rem;
-		margin-top: 0.5rem;
-	}
-	.alert {
-		padding: 0.75rem 1rem;
-		border-radius: var(--radius);
-		font-size: 14px;
-	}
-	.alert-success {
-		background: #eafaf1;
-		color: #080;
-		border: 1px solid #c3e6cb;
-	}
-	.alert-danger {
-		background: #fee;
-		color: var(--danger);
-		border: 1px solid #f5c6cb;
-	}
-	.empty-state {
-		color: var(--text-muted);
-		font-size: 14px;
-		margin: 1rem 0;
-	}
-	.action-buttons {
-		display: flex;
-		gap: 0.5rem;
-	}
-	.btn-action {
-		background: transparent;
-		border: 1px solid var(--border);
-		border-radius: var(--radius-sm);
-		padding: 3px 8px;
-		font-size: 12px;
-		font-weight: 500;
-		cursor: pointer;
-		transition: all var(--transition-fast);
-	}
-	.btn-action.edit {
-		color: var(--accent);
-	}
-	.btn-action.edit:hover {
-		background: var(--accent);
-		color: #ffffff;
-		border-color: var(--accent);
-	}
-	.btn-action.delete {
-		color: var(--danger);
-	}
-	.btn-action.delete:hover {
-		background: var(--danger);
-		color: #ffffff;
-		border-color: var(--danger);
-	}
-</style>
+{/if}

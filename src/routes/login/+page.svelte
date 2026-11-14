@@ -1,5 +1,6 @@
 <script>
 	import { page } from '$app/state';
+	import logo from '$lib/assets/logo.png';
 
 	let identifier = $state('');
 	let password = $state('');
@@ -46,16 +47,11 @@
 	<div class="canvas-container">
 		<!-- Top Navigation Header -->
 		<header class="top-nav">
-			<div class="brand-left">
-				<div class="brand-icon">
-					<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-						<path
-							d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"
-						/>
-					</svg>
-				</div>
+			<a href="/" class="brand-left">
+				<img src={logo} alt="Ticket Go Logo" class="brand-logo-img" />
 				<span class="brand-name">Ticket Go</span>
-			</div>
+				<span class="dot-indicator"></span>
+			</a>
 		</header>
 
 		<!-- Main Login Area -->
@@ -64,13 +60,7 @@
 				<!-- Card Top Brand Badge -->
 				<div class="card-brand-header">
 					<div class="card-brand-left">
-						<div class="mini-logo">
-							<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
-								<path
-									d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"
-								/>
-							</svg>
-						</div>
+						<img src={logo} alt="Ticket Go Logo" class="mini-logo-img" />
 						<span class="card-brand-text">Ticket Go</span>
 						<span class="dot-indicator"></span>
 					</div>
@@ -261,18 +251,14 @@
 	.brand-left {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
+		gap: 0.6rem;
+		text-decoration: none;
 	}
 
-	.brand-icon {
-		width: 32px;
+	.brand-logo-img {
 		height: 32px;
-		background-color: #000000;
-		color: #ffffff;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
+		width: auto;
+		object-fit: contain;
 	}
 
 	.brand-name {
@@ -330,15 +316,10 @@
 		gap: 0.5rem;
 	}
 
-	.mini-logo {
-		width: 24px;
-		height: 24px;
-		background-color: #000000;
-		color: #ffffff;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
+	.mini-logo-img {
+		height: 22px;
+		width: auto;
+		object-fit: contain;
 	}
 
 	.card-brand-text {

@@ -3,8 +3,6 @@ import { requireRole } from '$lib/server/guard';
 import { pool } from '$lib/server/db';
 
 export async function GET(event) {
-	requireRole(event, 'member');
-
 	const url = event.url;
 	const idKotaAsal = url.searchParams.get('id_kota_asal');
 	const idKotaTujuan = url.searchParams.get('id_kota_tujuan');
