@@ -170,10 +170,45 @@
 			</svg>
 			<span>{getTodayFormatted()}</span>
 			<span class="text-slate-300">•</span>
+			<span class="font-semibold text-slate-700 tracking-wide">TERMINAL RAJABASA AKTIF</span>
 		</div>
 
 		<div class="flex items-center gap-3">
+			<div
+				class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-xs font-medium text-emerald-800"
+			>
+				<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+				<span>Status Tol Bakauheni - Terbanggi: <strong>Lancar</strong></span>
+			</div>
+
 			<div class="flex items-center gap-1.5 text-slate-400">
+				<button
+					class="p-2 rounded-full hover:bg-slate-100 hover:text-slate-700 transition"
+					aria-label="Notifikasi"
+				>
+					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+						/>
+					</svg>
+				</button>
+				<a
+					href="/member/keluhan"
+					class="p-2 rounded-full hover:bg-slate-100 hover:text-slate-700 transition"
+					aria-label="Bantuan"
+				>
+					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+						/>
+					</svg>
+				</a>
 				<div
 					class="w-7 h-7 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold"
 				>
@@ -188,7 +223,7 @@
 		<p class="text-xs font-semibold text-purple-600 mb-1">{getGreeting()}, {userName}</p>
 		<h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Cari Perjalanan</h1>
 		<p class="text-sm text-slate-500 mt-1">
-			Pilih rute antarkota dan tanggal perjalanan Anda dengan armada nyaman Lampung Travel.
+			Pilih rute antarkota dan tanggal perjalanan Anda dengan armada nyaman Ticket Go.
 		</p>
 	</div>
 

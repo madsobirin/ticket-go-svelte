@@ -12,16 +12,28 @@
 
 <div class="min-h-screen bg-white flex flex-col md:flex-row text-slate-800 antialiased font-sans">
 	<!-- Mobile Header -->
-	<header class="md:hidden flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white sticky top-0 z-30">
+	<header
+		class="md:hidden flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white sticky top-0 z-30"
+	>
 		<a href="/member" class="flex items-center gap-2.5">
 			<div class="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-white">
-				<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M8 6v6" /><path d="M16 6v6" /><path d="M4 6h16a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" />
+				<svg
+					class="w-4 h-4"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path d="M8 6v6" /><path d="M16 6v6" /><path
+						d="M4 6h16a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"
+					/>
 					<circle cx="7" cy="18" r="2" /><circle cx="17" cy="18" r="2" />
 				</svg>
 			</div>
 			<div class="flex items-center gap-1">
-				<span class="font-bold text-slate-900 text-base tracking-tight">Lampung Travel</span>
+				<span class="font-bold text-slate-900 text-base tracking-tight">Ticket Go</span>
 				<span class="w-1.5 h-1.5 rounded-full bg-purple-600 inline-block"></span>
 			</div>
 		</a>
@@ -32,9 +44,19 @@
 		>
 			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				{#if mobileMenuOpen}
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M6 18L18 6M6 6l12 12"
+					/>
 				{:else}
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M4 6h16M4 12h16M4 18h16"
+					/>
 				{/if}
 			</svg>
 		</button>
@@ -61,21 +83,35 @@
 		<div class="p-5 flex-1 flex flex-col overflow-y-auto">
 			<!-- Brand Header -->
 			<div class="flex items-center gap-2.5 mb-6">
-				<div class="w-9 h-9 rounded-full bg-slate-900 flex items-center justify-center text-white shrink-0 shadow-xs">
-					<svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M8 6v6" /><path d="M16 6v6" /><path d="M4 6h16a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" />
+				<div
+					class="w-9 h-9 rounded-full bg-slate-900 flex items-center justify-center text-white shrink-0 shadow-xs"
+				>
+					<svg
+						class="w-4.5 h-4.5"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<path d="M8 6v6" /><path d="M16 6v6" /><path
+							d="M4 6h16a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"
+						/>
 						<circle cx="7" cy="18" r="2" /><circle cx="17" cy="18" r="2" />
 					</svg>
 				</div>
 				<div class="flex items-center gap-1.5">
-					<span class="font-extrabold text-slate-900 text-base tracking-tight">Lampung Travel</span>
+					<span class="font-extrabold text-slate-900 text-base tracking-tight">Ticket Go</span>
 					<span class="w-1.5 h-1.5 rounded-full bg-purple-600 inline-block"></span>
 				</div>
 			</div>
 
 			<!-- Sidebar Search input -->
 			<div class="relative mb-5">
-				<span class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-400">
+				<span
+					class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-400"
+				>
 					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<circle cx="11" cy="11" r="8" stroke-width="2" />
 						<path d="m21 21-4.35-4.35" stroke-width="2" stroke-linecap="round" />
@@ -99,7 +135,12 @@
 							: 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
 					}`}
 				>
-					<svg class={`w-4.5 h-4.5 ${page.url.pathname === '/member' ? 'text-slate-900' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg
+						class={`w-4.5 h-4.5 ${page.url.pathname === '/member' ? 'text-slate-900' : 'text-slate-400'}`}
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
 						<circle cx="11" cy="11" r="8" stroke-width="2" />
 						<path d="m21 21-4.35-4.35" stroke-width="2" stroke-linecap="round" />
 					</svg>
@@ -115,7 +156,12 @@
 							: 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
 					}`}
 				>
-					<svg class={`w-4.5 h-4.5 ${page.url.pathname.startsWith('/member/pesanan') ? 'text-slate-900' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg
+						class={`w-4.5 h-4.5 ${page.url.pathname.startsWith('/member/pesanan') ? 'text-slate-900' : 'text-slate-400'}`}
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
 						<rect x="2" y="5" width="20" height="14" rx="2" stroke-width="2" />
 						<path d="M2 10h20" stroke-width="2" />
 					</svg>
@@ -131,8 +177,18 @@
 							: 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
 					}`}
 				>
-					<svg class={`w-4.5 h-4.5 ${page.url.pathname.startsWith('/member/keluhan') ? 'text-slate-900' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+					<svg
+						class={`w-4.5 h-4.5 ${page.url.pathname.startsWith('/member/keluhan') ? 'text-slate-900' : 'text-slate-400'}`}
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+						/>
 					</svg>
 					<span>Keluhan</span>
 				</a>
@@ -143,9 +199,16 @@
 		<div class="p-4 border-t border-dashed border-gray-200">
 			<div class="flex items-center justify-between">
 				<div class="flex items-center gap-3 min-w-0">
-					<div class="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center shrink-0">
+					<div
+						class="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center shrink-0"
+					>
 						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+							/>
 						</svg>
 					</div>
 					<div class="min-w-0">
@@ -163,7 +226,12 @@
 					class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
 				>
 					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+						/>
 					</svg>
 				</button>
 			</div>
