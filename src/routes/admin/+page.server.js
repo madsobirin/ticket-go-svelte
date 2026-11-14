@@ -24,7 +24,7 @@ export async function load() {
 			kt.nm_kota_tujuan,
 			k.jenis_mobil,
 			k.nomor_polisi,
-			5 as kapasitas,
+			8 as kapasitas,
 			(SELECT COUNT(*) FROM pesan p WHERE p.id_jadwal = j.id_jadwal AND p.status IN ('Dalam Proses', 'Lunas')) as terisi
 		FROM jadwal j
 		LEFT JOIN kota_asal ka ON j.id_kota_asal = ka.id_kota_asal

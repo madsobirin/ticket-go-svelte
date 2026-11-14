@@ -22,7 +22,7 @@ export async function GET(event) {
 			k.jenis_mobil,
 			k.nomor_polisi,
 			COUNT(p.id_pesan) as kursi_terisi,
-			GREATEST(0, 5 - COUNT(p.id_pesan)) as sisa_kursi
+			GREATEST(0, 8 - COUNT(p.id_pesan)) as sisa_kursi
 		FROM jadwal j
 		LEFT JOIN kota_asal ka ON j.id_kota_asal = ka.id_kota_asal
 		LEFT JOIN kota_tujuan kt ON j.id_kota_tujuan = kt.id_kota_tujuan

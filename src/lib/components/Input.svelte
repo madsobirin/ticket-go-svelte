@@ -10,7 +10,7 @@
 		...rest
 	} = $props();
 
-	const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') + '-' + Math.random().toString(36).slice(2, 7) : undefined);
+	const inputId = $derived(id || (label ? label.toLowerCase().replace(/\s+/g, '-') + '-' + Math.random().toString(36).slice(2, 7) : undefined));
 </script>
 
 <div class="input-group">

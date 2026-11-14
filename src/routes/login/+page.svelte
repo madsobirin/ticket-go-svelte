@@ -14,6 +14,12 @@
 			: ''
 	);
 
+	let infoMsg = $derived(
+		page.url.searchParams.get('login_required') === '1'
+			? 'Silakan masuk ke akun Member Anda terlebih dahulu untuk memesan tiket perjalanan.'
+			: ''
+	);
+
 	async function handleSubmit(e) {
 		e.preventDefault();
 		errorMsg = '';
@@ -33,8 +39,13 @@
 				return;
 			}
 
-			// Redirect ke halaman sesuai role (member, operator, atau admin)
-			window.location.href = data.data.redirect;
+			// Redirect ke target jika ada (misal halaman jadwal), atau fallback sesuai role
+			const targetRedirect = page.url.searchParams.get('redirect');
+			if (targetRedirect && targetRedirect.startsWith('/') && !targetRedirect.startsWith('//')) {
+				window.location.href = targetRedirect;
+			} else {
+				window.location.href = data.data.redirect;
+			}
 		} catch {
 			errorMsg = 'Terjadi kesalahan koneksi. Silakan coba lagi.';
 		} finally {
@@ -69,6 +80,24 @@
 				<!-- Headings -->
 				<h1 class="card-title">Masuk</h1>
 				<p class="card-subtitle">Masuk untuk melanjutkan pemesanan</p>
+
+				{#if infoMsg}
+					<div class="alert-info" role="status">
+						<svg
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							width="16"
+							height="16"
+						>
+							<circle cx="12" cy="12" r="10" />
+							<line x1="12" y1="16" x2="12" y2="12" />
+							<line x1="12" y1="8" x2="12.01" y2="8" />
+						</svg>
+						<span>{infoMsg}</span>
+					</div>
+				{/if}
 
 				{#if successMsg}
 					<div class="alert-success" role="status">
@@ -268,15 +297,6 @@
 		letter-spacing: -0.2px;
 	}
 
-	.trust-badge {
-		display: flex;
-		align-items: center;
-		gap: 0.4rem;
-		font-size: 12px;
-		font-weight: 600;
-		color: #15803d;
-	}
-
 	/* Main Content Area */
 	.main-content {
 		flex: 1;
@@ -352,6 +372,20 @@
 	}
 
 	/* Alerts */
+	.alert-info {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		background-color: #eff6ff;
+		color: #1e40af;
+		border: 1px solid #bfdbfe;
+		border-radius: 0.75rem;
+		padding: 0.65rem 0.85rem;
+		font-size: 13px;
+		margin-bottom: 1.25rem;
+		line-height: 1.4;
+	}
+
 	.alert-success {
 		display: flex;
 		align-items: center;
@@ -560,61 +594,5 @@
 
 	.link-register:hover {
 		text-decoration: underline;
-	}
-
-	/* Meta Transit Badge under card */
-	.sub-transit-meta {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.5rem;
-		margin-top: 2rem;
-		font-family: monospace;
-		font-size: 11px;
-		font-weight: 600;
-		color: #64748b;
-		letter-spacing: 1px;
-	}
-
-	.meta-dot {
-		width: 6px;
-		height: 6px;
-		border-radius: 50%;
-		background-color: #22c55e;
-		display: inline-block;
-	}
-
-	/* Bottom Footer */
-	.bottom-footer {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		justify-content: space-between;
-		align-items: center;
-		padding: 1.25rem 2rem;
-		font-size: 12px;
-		color: #64748b;
-		border-top: 1px solid #edf0f4;
-	}
-
-	@media (min-width: 768px) {
-		.bottom-footer {
-			flex-direction: row;
-		}
-	}
-
-	.footer-links {
-		display: flex;
-		align-items: center;
-		gap: 1.25rem;
-	}
-
-	.footer-links a {
-		color: #64748b;
-		text-decoration: none;
-		transition: color 0.15s ease;
-	}
-
-	.footer-links a:hover {
-		color: #0f172a;
 	}
 </style>

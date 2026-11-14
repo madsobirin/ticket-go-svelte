@@ -15,15 +15,15 @@ export async function pesanKursi({ id_jadwal, id_member, kursiList }) {
 		err.status = 400;
 		throw err;
 	}
-	if (kursiList.length > 5) {
-		const err = new Error('Maksimal pemesanan 5 kursi');
+	if (kursiList.length > 8) {
+		const err = new Error('Maksimal pemesanan 8 kursi');
 		err.status = 400;
 		throw err;
 	}
 
 	for (const seat of kursiList) {
-		if (seat < 1 || seat > 5) {
-			const err = new Error('Nomor kursi harus antara 1 sampai 5');
+		if (seat < 1 || seat > 8) {
+			const err = new Error('Nomor kursi harus antara 1 sampai 8');
 			err.status = 400;
 			throw err;
 		}

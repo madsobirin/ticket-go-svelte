@@ -440,15 +440,6 @@
 		letter-spacing: -0.2px;
 	}
 
-	.trust-badge {
-		display: flex;
-		align-items: center;
-		gap: 0.4rem;
-		font-size: 12px;
-		font-weight: 600;
-		color: #15803d;
-	}
-
 	/* Main Content Area */
 	.main-content {
 		flex: 1;
@@ -506,17 +497,6 @@
 		display: inline-block;
 	}
 
-	.version-badge {
-		font-size: 11px;
-		font-family: monospace;
-		font-weight: 600;
-		color: #6b7280;
-		background-color: #f3f4f6;
-		padding: 2px 8px;
-		border-radius: 9999px;
-		letter-spacing: 0.5px;
-	}
-
 	/* Headings */
 	.card-title {
 		margin: 0;
@@ -569,15 +549,6 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-	}
-
-	.hint-badge {
-		font-size: 11px;
-		font-family: monospace;
-		color: #475569;
-		background-color: #f1f5f9;
-		padding: 1px 6px;
-		border-radius: 4px;
 	}
 
 	.input-wrapper {
@@ -787,51 +758,5 @@
 
 	.link-login:hover {
 		text-decoration: underline;
-	}
-
-	/* Trust Notice */
-	.security-guarantee {
-		margin-top: 1.25rem;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.4rem;
-		font-size: 11.5px;
-		color: #64748b;
-	}
-
-	/* Bottom Footer */
-	.bottom-footer {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		justify-content: space-between;
-		align-items: center;
-		padding: 1.25rem 2.5rem;
-		font-size: 12px;
-		color: #64748b;
-		border-top: 1px solid #edf0f4;
-	}
-
-	@media (min-width: 768px) {
-		.bottom-footer {
-			flex-direction: row;
-		}
-	}
-
-	.footer-links {
-		display: flex;
-		align-items: center;
-		gap: 1.25rem;
-	}
-
-	.footer-links a {
-		color: #64748b;
-		text-decoration: none;
-		transition: color 0.15s ease;
-	}
-
-	.footer-links a:hover {
-		color: #0f172a;
 	}
 </style>
