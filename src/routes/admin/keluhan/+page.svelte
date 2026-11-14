@@ -16,7 +16,7 @@
 </script>
 
 <svelte:head>
-	<title>Keluhan &amp; Masukan Pelanggan | Lampung Travel Admin</title>
+	<title>Keluhan &amp; Masukan Pelanggan | Ticket Go Admin</title>
 </svelte:head>
 
 <div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">

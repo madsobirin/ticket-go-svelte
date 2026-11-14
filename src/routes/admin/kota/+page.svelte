@@ -71,6 +71,7 @@
 		showModal = false;
 		editingId = null;
 		namaKota = '';
+		errorMsg = '';
 	}
 
 	async function handleSubmit(e) {
@@ -136,12 +137,19 @@
 
 		try {
 			const res = await fetch(endpoint, { method: 'DELETE' });
-			const json = await res.json();
 			if (res.ok) {
+				// Hapus realtime dari state lokal seketika
+				if (tab === 'asal') {
+					kotaAsalList = kotaAsalList.filter((k) => k.id_kota_asal !== id);
+				} else {
+					kotaTujuanList = kotaTujuanList.filter((k) => k.id_kota_tujuan !== id);
+				}
 				successMsg = `Kota "${name}" berhasil dihapus`;
+				errorMsg = '';
 				await loadData();
 				setTimeout(() => (successMsg = ''), 3000);
 			} else {
+				const json = await res.json().catch(() => ({}));
 				errorMsg = json.error?.message ?? 'Gagal menghapus kota';
 			}
 		} catch {
@@ -163,7 +171,7 @@
 </script>
 
 <svelte:head>
-	<title>Kelola Kota Asal &amp; Tujuan | Lampung Travel Admin</title>
+	<title>Kelola Kota Asal &amp; Tujuan | Ticket Go Admin</title>
 </svelte:head>
 
 <div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
@@ -274,7 +282,7 @@
 		</div>
 	{/if}
 
-	{#if errorMsg}
+	{#if errorMsg && !showModal}
 		<div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center justify-between">
 			<div class="flex items-center gap-2">
 				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -500,6 +508,20 @@
 					</svg>
 				</button>
 			</div>
+
+			{#if errorMsg}
+				<div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center justify-between">
+					<div class="flex items-center gap-2">
+						<svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<circle cx="12" cy="12" r="10" stroke-width="2" />
+							<line x1="12" y1="8" x2="12" y2="12" stroke-width="2" />
+							<line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2" />
+						</svg>
+						<span>{errorMsg}</span>
+					</div>
+					<button type="button" aria-label="Tutup pesan error" onclick={() => (errorMsg = '')} class="text-rose-600 hover:text-rose-800 font-bold text-sm leading-none">×</button>
+				</div>
+			{/if}
 
 			<form onsubmit={handleSubmit} class="space-y-4">
 				<div>

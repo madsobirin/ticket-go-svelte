@@ -80,7 +80,7 @@
 </script>
 
 <svelte:head>
-	<title>Inspeksi Bukti #{order.resi_pesan} | Meja Loket Lampung Travel</title>
+	<title>Inspeksi Bukti #{order.resi_pesan} | Meja Loket Ticket Go</title>
 </svelte:head>
 
 <div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">

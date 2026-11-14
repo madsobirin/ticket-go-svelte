@@ -1,5 +1,6 @@
 <script>
 	import { page } from '$app/state';
+	import logo from '$lib/assets/logo.png';
 	let { data, children } = $props();
 
 	let mobileMenuOpen = $state(false);
@@ -14,14 +15,9 @@
 	<!-- Mobile Header -->
 	<header class="md:hidden flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white sticky top-0 z-30">
 		<a href="/operator" class="flex items-center gap-2.5">
-			<div class="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-white">
-				<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<rect x="2" y="6" width="20" height="12" rx="2" stroke-width="2" />
-					<circle cx="12" cy="12" r="2" stroke-width="2" />
-				</svg>
-			</div>
+			<img src={logo} alt="Ticket Go" class="h-8 w-auto object-contain shrink-0" />
 			<div>
-				<span class="font-extrabold text-slate-900 text-sm tracking-tight">Lampung Travel</span>
+				<span class="font-extrabold text-slate-900 text-sm tracking-tight">Ticket Go</span>
 				<span class="block text-[10px] text-purple-600 font-semibold leading-none">Meja Operator Loket</span>
 			</div>
 		</a>
@@ -62,14 +58,9 @@
 			<!-- Brand Header -->
 			<div class="mb-5">
 				<div class="flex items-center gap-2.5">
-					<div class="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white shrink-0 shadow-xs">
-						<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<rect x="2" y="6" width="20" height="12" rx="2" stroke-width="2" />
-							<path d="M12 12h.01M17 12h.01M7 12h.01" stroke-width="2" />
-						</svg>
-					</div>
+					<img src={logo} alt="Ticket Go" class="h-9 w-auto object-contain shrink-0" />
 					<div>
-						<span class="font-extrabold text-slate-900 text-sm tracking-tight block">Lampung Travel</span>
+						<span class="font-extrabold text-slate-900 text-sm tracking-tight block">Ticket Go</span>
 						<span class="text-[10px] text-slate-400 font-medium block">Portal Meja Kasir</span>
 					</div>
 				</div>

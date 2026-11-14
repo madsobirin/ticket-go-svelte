@@ -14,7 +14,7 @@ export async function load({ params, locals, url }) {
 		throw error(404, 'Pesanan tidak ditemukan');
 	}
 
-	if (order.id_member !== locals.user.id) {
+	if (order.id_member !== locals.user.id && locals.user.role !== 'admin' && locals.user.role !== 'operator') {
 		throw error(403, 'Akses ditolak: bukan pesanan Anda');
 	}
 

@@ -1,4 +1,4 @@
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { findPesananById } from '$lib/server/repositories/pesan';
 import { banks } from '$lib/server/config/bank';
 
@@ -14,8 +14,13 @@ export async function load({ params, locals }) {
 		throw error(404, 'Pesanan tidak ditemukan');
 	}
 
-	if (order.id_member !== locals.user.id) {
+	if (order.id_member !== locals.user.id && locals.user.role !== 'admin' && locals.user.role !== 'operator') {
 		throw error(403, 'Akses ditolak: bukan pesanan Anda');
+	}
+
+	// Jika pesanan sudah Lunas, langsung arahkan ke tiket resmi
+	if (order.status === 'Lunas') {
+		throw redirect(303, `/member/pesanan/${id}/tiket`);
 	}
 
 	return {

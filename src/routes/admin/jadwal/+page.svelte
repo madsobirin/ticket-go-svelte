@@ -15,6 +15,12 @@
 	let searchQuery = $state('');
 	let filterKota = $state('');
 
+	// Modal Search Filter & Combobox for Kota
+	let searchAsal = $state('');
+	let searchTujuan = $state('');
+	let openAsal = $state(false);
+	let openTujuan = $state(false);
+
 	// Form & Modal state
 	let showModal = $state(false);
 	let editingId = $state(null);
@@ -28,6 +34,33 @@
 
 	const todayDate = new Date().toISOString().split('T')[0];
 
+	// Filtered city options for modal
+	const filteredKotaAsal = $derived(
+		kotaAsalList.filter((k) =>
+			!searchAsal.trim() || k.nm_kota_asal.toLowerCase().includes(searchAsal.toLowerCase())
+		)
+	);
+
+	const filteredKotaTujuan = $derived(
+		kotaTujuanList.filter((k) =>
+			!searchTujuan.trim() || k.nm_kota_tujuan.toLowerCase().includes(searchTujuan.toLowerCase())
+		)
+	);
+
+	$effect(() => {
+		const match = kotaAsalList.find(
+			(k) => k.nm_kota_asal.toLowerCase() === searchAsal.trim().toLowerCase()
+		);
+		if (match) idKotaAsal = match.id_kota_asal;
+	});
+
+	$effect(() => {
+		const match = kotaTujuanList.find(
+			(k) => k.nm_kota_tujuan.toLowerCase() === searchTujuan.trim().toLowerCase()
+		);
+		if (match) idKotaTujuan = match.id_kota_tujuan;
+	});
+
 	onMount(() => {
 		loadAll();
 	});
@@ -36,23 +69,23 @@
 		loading = true;
 		errorMsg = '';
 		try {
-			const [jadwalRes, kotaRes, kendaraanRes] = await Promise.all([
+			const [jadwalRes, asalRes, tujuanRes, kendaraanRes] = await Promise.all([
 				fetch('/api/admin/jadwal'),
-				fetch('/api/kota'),
+				fetch('/api/admin/kota/asal'),
+				fetch('/api/admin/kota/tujuan'),
 				fetch('/api/admin/kendaraan')
 			]);
 
-			const [jadwalJson, kotaJson, kendaraanJson] = await Promise.all([
+			const [jadwalJson, asalJson, tujuanJson, kendaraanJson] = await Promise.all([
 				jadwalRes.json(),
-				kotaRes.json(),
+				asalRes.json(),
+				tujuanRes.json(),
 				kendaraanRes.json()
 			]);
 
 			if (jadwalRes.ok) jadwalList = jadwalJson.data;
-			if (kotaRes.ok) {
-				kotaAsalList = kotaJson.data?.asal || [];
-				kotaTujuanList = kotaJson.data?.tujuan || [];
-			}
+			if (asalRes.ok) kotaAsalList = asalJson.data || [];
+			if (tujuanRes.ok) kotaTujuanList = tujuanJson.data || [];
 			if (kendaraanRes.ok) kendaraanList = kendaraanJson.data;
 		} catch {
 			errorMsg = 'Gagal memuat data dari server';
@@ -69,14 +102,19 @@
 		}).format(num);
 	}
 
-	function openCreateModal() {
+	async function openCreateModal() {
+		await loadAll();
 		editingId = null;
 		idKotaAsal = kotaAsalList[0]?.id_kota_asal || '';
+		searchAsal = kotaAsalList[0]?.nm_kota_asal || '';
 		idKotaTujuan = kotaTujuanList[0]?.id_kota_tujuan || '';
+		searchTujuan = kotaTujuanList[0]?.nm_kota_tujuan || '';
 		idMobil = kendaraanList[0]?.id_mobil || '';
 		harga = '60000';
 		tglBerangkat = todayDate;
 		jamBerangkat = '08:00';
+		openAsal = false;
+		openTujuan = false;
 		errorMsg = '';
 		successMsg = '';
 		showModal = true;
@@ -85,11 +123,15 @@
 	function startEdit(item) {
 		editingId = item.id_jadwal;
 		idKotaAsal = item.id_kota_asal;
+		searchAsal = item.nm_kota_asal || '';
 		idKotaTujuan = item.id_kota_tujuan;
+		searchTujuan = item.nm_kota_tujuan || '';
 		idMobil = item.id_mobil;
 		harga = String(item.harga);
 		tglBerangkat = item.tgl_berangkat;
 		jamBerangkat = item.jam_berangkat?.slice(0, 5) || '';
+		openAsal = false;
+		openTujuan = false;
 		errorMsg = '';
 		successMsg = '';
 		showModal = true;
@@ -98,6 +140,9 @@
 	function closeModal() {
 		showModal = false;
 		editingId = null;
+		openAsal = false;
+		openTujuan = false;
+		errorMsg = '';
 	}
 
 	async function handleSubmit(e) {
@@ -105,6 +150,27 @@
 		formLoading = true;
 		errorMsg = '';
 		successMsg = '';
+
+		// Pastikan ID kota sinkron
+		if (!idKotaAsal || !kotaAsalList.some((k) => k.id_kota_asal === Number(idKotaAsal) && k.nm_kota_asal.toLowerCase() === searchAsal.trim().toLowerCase())) {
+			const match = kotaAsalList.find((k) => k.nm_kota_asal.toLowerCase() === searchAsal.trim().toLowerCase());
+			if (match) idKotaAsal = match.id_kota_asal;
+			else {
+				errorMsg = 'Pilih kota asal yang valid dari daftar dropdown';
+				formLoading = false;
+				return;
+			}
+		}
+
+		if (!idKotaTujuan || !kotaTujuanList.some((k) => k.id_kota_tujuan === Number(idKotaTujuan) && k.nm_kota_tujuan.toLowerCase() === searchTujuan.trim().toLowerCase())) {
+			const match = kotaTujuanList.find((k) => k.nm_kota_tujuan.toLowerCase() === searchTujuan.trim().toLowerCase());
+			if (match) idKotaTujuan = match.id_kota_tujuan;
+			else {
+				errorMsg = 'Pilih kota tujuan yang valid dari daftar dropdown';
+				formLoading = false;
+				return;
+			}
+		}
 
 		const payload = {
 			id_kota_asal: Number(idKotaAsal),
@@ -154,12 +220,15 @@
 
 		try {
 			const res = await fetch(`/api/admin/jadwal/${id}`, { method: 'DELETE' });
-			const json = await res.json();
 			if (res.ok) {
+				// Hapus realtime dari state lokal seketika
+				jadwalList = jadwalList.filter((j) => j.id_jadwal !== id);
 				successMsg = `Jadwal ID #${id} berhasil dihapus`;
+				errorMsg = '';
 				await loadAll();
 				setTimeout(() => (successMsg = ''), 3000);
 			} else {
+				const json = await res.json().catch(() => ({}));
 				errorMsg = json.error?.message ?? 'Gagal menghapus jadwal';
 			}
 		} catch {
@@ -179,7 +248,7 @@
 </script>
 
 <svelte:head>
-	<title>Manajemen Jadwal &amp; Rute | Lampung Travel Admin</title>
+	<title>Manajemen Jadwal &amp; Rute | Ticket Go Admin</title>
 </svelte:head>
 
 <div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
@@ -251,7 +320,7 @@
 		</div>
 	{/if}
 
-	{#if errorMsg}
+	{#if errorMsg && !showModal}
 		<div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center justify-between">
 			<div class="flex items-center gap-2">
 				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -437,34 +506,170 @@
 				</button>
 			</div>
 
+			{#if errorMsg}
+				<div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center justify-between">
+					<div class="flex items-center gap-2">
+						<svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<circle cx="12" cy="12" r="10" stroke-width="2" />
+							<line x1="12" y1="8" x2="12" y2="12" stroke-width="2" />
+							<line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2" />
+						</svg>
+						<span>{errorMsg}</span>
+					</div>
+					<button type="button" aria-label="Tutup pesan error" onclick={() => (errorMsg = '')} class="text-rose-600 hover:text-rose-800 font-bold text-sm leading-none">×</button>
+				</div>
+			{/if}
+
 			<form onsubmit={handleSubmit} class="space-y-3 text-xs">
 				<div class="grid grid-cols-2 gap-3">
-					<div>
-						<label for="form-asal" class="block text-slate-600 font-semibold mb-1">Kota Keberangkatan (Asal)</label>
-						<select
-							id="form-asal"
-							bind:value={idKotaAsal}
-							required
-							class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white"
-						>
-							{#each kotaAsalList as ka}
-								<option value={ka.id_kota_asal}>{ka.nm_kota_asal}</option>
-							{/each}
-						</select>
+					<!-- Single Field Kota Asal Combobox -->
+					<div class="relative">
+						<label for="form-asal" class="block text-slate-700 font-bold mb-1">
+							Kota Asal <span class="text-rose-500">*</span>
+						</label>
+						<div class="relative">
+							<input
+								id="form-asal"
+								type="text"
+								bind:value={searchAsal}
+								onfocus={() => {
+									openAsal = true;
+									openTujuan = false;
+								}}
+								oninput={() => {
+									openAsal = true;
+								}}
+								placeholder="Pilih atau cari kota asal..."
+								required
+								autocomplete="off"
+								class="w-full pl-3 pr-8 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white"
+							/>
+							<button
+								type="button"
+								tabindex="-1"
+								aria-label="Pilih kota asal"
+								onclick={() => (openAsal = !openAsal)}
+								class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+							>
+								<svg class={`w-3.5 h-3.5 transition-transform ${openAsal ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<polyline points="6 9 12 15 18 9" stroke-width="2" />
+								</svg>
+							</button>
+						</div>
+
+						{#if openAsal}
+							<button
+								type="button"
+								tabindex="-1"
+								aria-label="Tutup pilihan kota asal"
+								onclick={() => (openAsal = false)}
+								class="fixed inset-0 z-40 bg-transparent cursor-default border-none w-full h-full"
+							></button>
+							<div class="absolute left-0 right-0 top-full mt-1 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-lg z-50 divide-y divide-slate-50">
+								{#each filteredKotaAsal as ka}
+									<button
+										type="button"
+										onclick={() => {
+											idKotaAsal = ka.id_kota_asal;
+											searchAsal = ka.nm_kota_asal;
+											openAsal = false;
+										}}
+										class={`w-full text-left px-3 py-2 text-xs transition flex items-center justify-between ${
+											Number(idKotaAsal) === ka.id_kota_asal
+												? 'bg-purple-50 text-purple-700 font-bold'
+												: 'hover:bg-slate-50 text-slate-700'
+										}`}
+									>
+										<span>{ka.nm_kota_asal}</span>
+										{#if Number(idKotaAsal) === ka.id_kota_asal}
+											<svg class="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<polyline points="20 6 9 17 4 12" stroke-width="2" />
+											</svg>
+										{/if}
+									</button>
+								{/each}
+								{#if filteredKotaAsal.length === 0}
+									<div class="p-3 text-center text-xs text-slate-400 italic">
+										Kota tidak ditemukan
+									</div>
+								{/if}
+							</div>
+						{/if}
 					</div>
 
-					<div>
-						<label for="form-tujuan" class="block text-slate-600 font-semibold mb-1">Kota Kedatangan (Tujuan)</label>
-						<select
-							id="form-tujuan"
-							bind:value={idKotaTujuan}
-							required
-							class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white"
-						>
-							{#each kotaTujuanList as kt}
-								<option value={kt.id_kota_tujuan}>{kt.nm_kota_tujuan}</option>
-							{/each}
-						</select>
+					<!-- Single Field Kota Tujuan Combobox -->
+					<div class="relative">
+						<label for="form-tujuan" class="block text-slate-700 font-bold mb-1">
+							Kota Tujuan <span class="text-rose-500">*</span>
+						</label>
+						<div class="relative">
+							<input
+								id="form-tujuan"
+								type="text"
+								bind:value={searchTujuan}
+								onfocus={() => {
+									openTujuan = true;
+									openAsal = false;
+								}}
+								oninput={() => {
+									openTujuan = true;
+								}}
+								placeholder="Pilih atau cari kota tujuan..."
+								required
+								autocomplete="off"
+								class="w-full pl-3 pr-8 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white"
+							/>
+							<button
+								type="button"
+								tabindex="-1"
+								aria-label="Pilih kota tujuan"
+								onclick={() => (openTujuan = !openTujuan)}
+								class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+							>
+								<svg class={`w-3.5 h-3.5 transition-transform ${openTujuan ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<polyline points="6 9 12 15 18 9" stroke-width="2" />
+								</svg>
+							</button>
+						</div>
+
+						{#if openTujuan}
+							<button
+								type="button"
+								tabindex="-1"
+								aria-label="Tutup pilihan kota tujuan"
+								onclick={() => (openTujuan = false)}
+								class="fixed inset-0 z-40 bg-transparent cursor-default border-none w-full h-full"
+							></button>
+							<div class="absolute left-0 right-0 top-full mt-1 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-lg z-50 divide-y divide-slate-50">
+								{#each filteredKotaTujuan as kt}
+									<button
+										type="button"
+										onclick={() => {
+											idKotaTujuan = kt.id_kota_tujuan;
+											searchTujuan = kt.nm_kota_tujuan;
+											openTujuan = false;
+										}}
+										class={`w-full text-left px-3 py-2 text-xs transition flex items-center justify-between ${
+											Number(idKotaTujuan) === kt.id_kota_tujuan
+												? 'bg-purple-50 text-purple-700 font-bold'
+												: 'hover:bg-slate-50 text-slate-700'
+										}`}
+									>
+										<span>{kt.nm_kota_tujuan}</span>
+										{#if Number(idKotaTujuan) === kt.id_kota_tujuan}
+											<svg class="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<polyline points="20 6 9 17 4 12" stroke-width="2" />
+											</svg>
+										{/if}
+									</button>
+								{/each}
+								{#if filteredKotaTujuan.length === 0}
+									<div class="p-3 text-center text-xs text-slate-400 italic">
+										Kota tidak ditemukan
+									</div>
+								{/if}
+							</div>
+						{/if}
 					</div>
 				</div>
 

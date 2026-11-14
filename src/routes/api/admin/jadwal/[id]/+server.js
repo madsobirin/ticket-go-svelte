@@ -67,7 +67,7 @@ export async function DELETE(event) {
 
 	try {
 		await removeJadwal(id);
-		return new Response(null, { status: 204 });
+		return json({ data: { message: 'Jadwal berhasil dihapus' } });
 	} catch (err) {
 		return json({ error: { code: 'CONFLICT', message: 'Jadwal tidak bisa dihapus karena sudah ada pesanan' } }, { status: 409 });
 	}

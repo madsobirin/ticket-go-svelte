@@ -72,6 +72,7 @@
 	function closeModal() {
 		showModal = false;
 		editingId = null;
+		errorMsg = '';
 	}
 
 	async function handleSubmit(e) {
@@ -128,12 +129,15 @@
 
 		try {
 			const res = await fetch(`/api/admin/member/${id}`, { method: 'DELETE' });
-			const json = await res.json();
 			if (res.ok) {
+				// Hapus realtime dari state lokal seketika
+				memberList = memberList.filter((m) => m.id_member !== id);
 				successMsg = `Member ${namaMember} berhasil dihapus`;
+				errorMsg = '';
 				await loadMembers();
 				setTimeout(() => (successMsg = ''), 3000);
 			} else {
+				const json = await res.json().catch(() => ({}));
 				errorMsg = json.error?.message ?? 'Gagal menghapus member';
 			}
 		} catch {
@@ -153,7 +157,7 @@
 </script>
 
 <svelte:head>
-	<title>Kelola Data Member | Lampung Travel Admin</title>
+	<title>Kelola Data Member | Ticket Go Admin</title>
 </svelte:head>
 
 <div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
@@ -225,7 +229,7 @@
 		</div>
 	{/if}
 
-	{#if errorMsg}
+	{#if errorMsg && !showModal}
 		<div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center justify-between">
 			<div class="flex items-center gap-2">
 				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -406,6 +410,20 @@
 					</svg>
 				</button>
 			</div>
+
+			{#if errorMsg}
+				<div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center justify-between">
+					<div class="flex items-center gap-2">
+						<svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<circle cx="12" cy="12" r="10" stroke-width="2" />
+							<line x1="12" y1="8" x2="12" y2="12" stroke-width="2" />
+							<line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2" />
+						</svg>
+						<span>{errorMsg}</span>
+					</div>
+					<button type="button" aria-label="Tutup pesan error" onclick={() => (errorMsg = '')} class="text-rose-600 hover:text-rose-800 font-bold text-sm leading-none">×</button>
+				</div>
+			{/if}
 
 			<form onsubmit={handleSubmit} class="space-y-3 text-xs">
 				<div class="grid grid-cols-2 gap-3">

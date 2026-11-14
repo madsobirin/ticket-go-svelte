@@ -13,12 +13,8 @@ export async function load({ params, locals }) {
 		throw error(404, 'Pesanan tidak ditemukan');
 	}
 
-	if (order.id_member !== locals.user.id) {
+	if (order.id_member !== locals.user.id && locals.user.role !== 'admin' && locals.user.role !== 'operator') {
 		throw error(403, 'Akses ditolak: pesanan ini bukan milik Anda');
-	}
-
-	if (order.status !== 'Belum Bayar') {
-		throw error(400, 'Pesanan ini tidak membutuhkan pembayaran lagi');
 	}
 
 	return {

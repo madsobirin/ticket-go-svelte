@@ -89,7 +89,7 @@
 </script>
 
 <svelte:head>
-	<title>Pesanan Saya - Lampung Travel</title>
+	<title>Pesanan Saya - Ticket Go</title>
 </svelte:head>
 
 <div class="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
@@ -265,9 +265,9 @@
 
 								<div>
 									{#if order.status === 'Lunas'}
-										<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-xs font-semibold border border-purple-100">
-											<span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
-											Terkonfirmasi Loket (Lunas)
+										<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">
+											<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+											Lunas • E-Tiket Sah
 										</span>
 									{:else if order.status === 'Dalam Proses'}
 										<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold border border-amber-100">
@@ -359,12 +359,12 @@
 										</a>
 										<a
 											href={`/member/pesanan/${order.id_pesan}/tiket`}
-											class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-semibold transition shadow-xs hover:scale-102 active:scale-98"
+											class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold transition shadow-xs hover:scale-102 active:scale-98"
 										>
-											<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<svg class="w-3.5 h-3.5 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
 											</svg>
-											<span>Cetak Slip (A5)</span>
+											<span>Cetak E-Tiket (A5)</span>
 										</a>
 									{:else if order.status === 'Dalam Proses'}
 										<a
@@ -475,7 +475,7 @@
 								<polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
 							</svg>
 						</div>
-						<h3 class="text-xs font-bold text-slate-900">Pusat Armada &amp; Tol Lampung</h3>
+						<h3 class="text-xs font-bold text-slate-900">Pusat Armada &amp; Tol Express</h3>
 					</div>
 
 					<span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">

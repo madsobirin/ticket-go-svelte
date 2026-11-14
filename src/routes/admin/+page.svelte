@@ -23,7 +23,7 @@
 </script>
 
 <svelte:head>
-	<title>Dashboard Operasional | Lampung Travel Admin</title>
+	<title>Dashboard Operasional | Ticket Go Admin</title>
 </svelte:head>
 
 <div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
@@ -43,7 +43,7 @@
 				class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold"
 			>
 				<span class="w-2 h-2 rounded-full bg-slate-900"></span>
-				<span>Sistem Tiket Lampung Travel</span>
+				<span>Sistem Tiket Ticket Go</span>
 			</span>
 		</div>
 	</div>
