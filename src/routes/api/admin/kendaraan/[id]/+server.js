@@ -9,6 +9,21 @@ const schema = z.object({
 	warna_mobil: z.string().min(1, 'Warna mobil wajib diisi').max(20)
 });
 
+export async function GET(event) {
+	requireRole(event, 'admin');
+	const id = Number(event.params.id);
+	if (!id || isNaN(id)) {
+		return json({ error: { code: 'INVALID_ID', message: 'ID kendaraan tidak valid' } }, { status: 400 });
+	}
+
+	const existing = await findKendaraanById(id);
+	if (!existing) {
+		return json({ error: { code: 'NOT_FOUND', message: 'Kendaraan tidak ditemukan' } }, { status: 404 });
+	}
+
+	return json({ data: existing });
+}
+
 export async function PUT(event) {
 	requireRole(event, 'admin');
 	const id = Number(event.params.id);

@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "19ac5b6d-5ea0-47ca-88e1-706ad3ad4fcc",
+    "_postman_id": "e0b3a61d-0a58-4de5-9170-d05647419a29",
     "name": "Ticket Go API Test Collection",
     "description": "Koleksi Postman untuk pengujian API Ticket Go di https://ticket-go-kohl.vercel.app.\n\nAlur Pengujian:\n1. Jalankan '02. Autentikasi / Login Admin / Login Operator / Login Member'.\n2. Token sesi disimpan otomatis di variabel 'session_cookie' dan otomatis dikirimkan di header/cookie jar.\n3. Jalankan endpoint pengujian sesuai role.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -1336,6 +1336,55 @@
               ]
             },
             "description": "Melihat semua armada kendaraan."
+          },
+          "response": []
+        },
+        {
+          "name": "1. Kelola Kendaraan - Detail Kendaraan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response is valid JSON\", function () {",
+                  "    pm.response.to.be.json;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "session={{session_cookie}}",
+                "type": "text",
+                "description": "Auto-filled dari login script atau gunakan Postman Cookie Jar"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/kendaraan/{{sample_kendaraan_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "kendaraan",
+                "{{sample_kendaraan_id}}"
+              ]
+            },
+            "description": "Melihat data spesifik kendaraan berdasarkan ID."
           },
           "response": []
         },

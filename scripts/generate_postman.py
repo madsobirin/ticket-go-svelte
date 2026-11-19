@@ -519,6 +519,17 @@ def build_postman_collection():
                 "response": []
             },
             {
+                "name": "1. Kelola Kendaraan - Detail Kendaraan",
+                "event": make_generic_test_script(200),
+                "request": {
+                    "method": "GET",
+                    "header": make_auth_headers(),
+                    "url": make_url("/api/admin/kendaraan/{{sample_kendaraan_id}}"),
+                    "description": "Melihat data spesifik kendaraan berdasarkan ID."
+                },
+                "response": []
+            },
+            {
                 "name": "1. Kelola Kendaraan - Tambah Kendaraan",
                 "event": make_generic_test_script(201),
                 "request": {
